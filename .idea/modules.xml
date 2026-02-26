@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/baba-is-you-editor.iml" filepath="$PROJECT_DIR$/baba-is-you-editor.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../pokemon-lets-battle/pokemon-lets-battle.iml" filepath="$PROJECT_DIR$/../pokemon-lets-battle/pokemon-lets-battle.iml" />
     </modules>
   </component>
 </project>

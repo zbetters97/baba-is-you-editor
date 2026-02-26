@@ -2,12 +2,14 @@ package application;
 
 import data.EntityGenerator;
 import data.SaveLoad;
+import data.StateHandler;
 import entity.Entity;
 import tile.TileManager;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -67,7 +69,11 @@ public class GamePanel extends JPanel implements Runnable {
     public CollisionChecker cChecker = new CollisionChecker(this);
     public final LogicHandler lHandler = new LogicHandler(this);
     public final EntityGenerator eGenerator = new EntityGenerator(this);
-    public final SaveLoad dataHandler = new SaveLoad(this);
+    public final StateHandler stateHandler = new StateHandler(this);
+
+    public SaveLoad saveLoad = new SaveLoad(this);
+    public File saveDir = new File(System.getProperty("user.home") + "/baba-conf/");
+    public int currentFileIndex = 0;
 
     /* ENTITIES */
     public Entity[][] chr = new Entity[maxLvls][50];
@@ -108,6 +114,14 @@ public class GamePanel extends JPanel implements Runnable {
 
         gameState = editState;
         setupLevel();
+
+        boolean saveCreated = false;
+        if (!saveDir.exists()) {
+            saveCreated = saveDir.mkdir();
+        }
+        if (saveCreated) {
+            saveLoad.load(currentFileIndex, false);
+        }
 
         if (fullScreenOn) {
             setFullScreen();
@@ -190,24 +204,15 @@ public class GamePanel extends JPanel implements Runnable {
         if (gameState == playState) {
             updateEntities();
             handleMovementInput();
-            checkLoad();
+            checkRedo();
             checkRules();
             checkWin();
-
-            if (keyH.yPressed) {
-                keyH.yPressed = false;
-                showGrid = !showGrid;
-            }
-
-            if (keyH.startPressed) {
-                keyH.startPressed = false;
-                showGrid = true;
-                gameState = editState;
-            }
+            handleKeyPress();
         }
         else if (gameState == editState) {
             if (keyH.startPressed) {
                 keyH.startPressed = false;
+                saveLoad.save(currentFileIndex);
                 gameState = playState;
                 setupLevel();
             }
@@ -256,7 +261,7 @@ public class GamePanel extends JPanel implements Runnable {
         // Arrow pressed while no entity movement
         if (directionPressed != null && cooldown > 2 && hasMoveableEntities(directionPressed)) {
 
-            dataHandler.saveState();
+            stateHandler.saveState();
             canLoad = false;
             cooldown = 0;
 
@@ -331,10 +336,10 @@ public class GamePanel extends JPanel implements Runnable {
      * Can only call redo when canLoad is TRUE and no one moving
      * Called by update()
      */
-    private void checkLoad() {
+    private void checkRedo() {
         if (keyH.bPressed && canLoad && noEntitiesMoving()) {
             keyH.bPressed = false;
-            dataHandler.loadState();
+            stateHandler.loadState();
             rulesCheck = true;
         }
     }
@@ -366,6 +371,22 @@ public class GamePanel extends JPanel implements Runnable {
                 if (e == null) continue;
                 e.checkWin(e);
             }
+        }
+    }
+
+    private void handleKeyPress() {
+        if (keyH.aPressed) {
+            saveLoad.load(currentFileIndex, true);
+            lHandler.scanForRules();
+        }
+        else if (keyH.yPressed) {
+            keyH.yPressed = false;
+            showGrid = !showGrid;
+        }
+        else if (keyH.startPressed) {
+            keyH.startPressed = false;
+            showGrid = true;
+            gameState = editState;
         }
     }
 
@@ -423,7 +444,7 @@ public class GamePanel extends JPanel implements Runnable {
      */
     public void setupLevel() {
         win = false;
-        dataHandler.clearData();
+        stateHandler.clearData();
         tileM.loadLvl();
         aSetter.setup();
         lHandler.scanForRules();
