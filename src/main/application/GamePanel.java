@@ -427,7 +427,7 @@ public class GamePanel extends JPanel implements Runnable {
         tileM.loadLvl();
         aSetter.setup();
         lHandler.scanForRules();
-        ui.setupUI();
+        ui.fetchEntity();
     }
 
     public Entity[][] getAllEntities() {

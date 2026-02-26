@@ -15,6 +15,6 @@ public class OBJ_Skull extends Entity {
         worldX = x * gp.tileSize;
         worldY = y * gp.tileSize;
 
-        image = up1 = down1 = left1 = right1 = setupImage("/objects/obj_" + objName.toLowerCase());
+        image = up1 = down1 = left1 = right1 = setupImage("/objects/" + objName.toLowerCase());
     }
 }

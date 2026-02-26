@@ -15,6 +15,6 @@ public class IT_Water extends InteractiveTile {
         worldX = x * gp.tileSize;
         worldY = y * gp.tileSize;
 
-        image = up1 = down1 = left1 = right1 = setupImage("/interactive_tiles/it_" + iName.toLowerCase());
+        image = up1 = down1 = left1 = right1 = setupImage("/i_tiles/" + iName.toLowerCase());
     }
 }

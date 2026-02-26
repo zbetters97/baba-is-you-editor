@@ -1,6 +1,7 @@
 package application;
 
 import entity.Entity;
+import entity.UIEntity;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -8,7 +9,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 
 public class UI {
@@ -17,22 +17,22 @@ public class UI {
     private final GamePanel gp;
     private Graphics2D g2;
 
-    private int subState = 0;
-
     /* CURSOR VALUES */
     private final BufferedImage cursor;
     private final BufferedImage cursor_select;
     private int slotCol = 0;
     private int slotRow = 0;
 
+    private boolean wasYPressed = false;
+
     /* ASSET HANDLERS */
+    private final ArrayList<ArrayList<UIEntity>> entityLibrary = new ArrayList<>();
     private int entityListIndex = 0;
     private int entityIndex = 0;
     private Entity[] currentEntityList;
     private Entity currentEntity;
     private Entity[] selectedEntityList;
     private Entity selectedEntity;
-    private final ArrayList<ArrayList<String>> entityNames = new ArrayList<>();
 
     /**
      * CONSTRUCTOR
@@ -44,24 +44,59 @@ public class UI {
 
         cursor = setup("/ui/ui_cursor");
         cursor_select = setup("/ui/ui_cursor_select");
+        fillEntityLibrary();
+    }
 
-        entityNames.addAll(Arrays.asList(
-                new ArrayList<>(Arrays.asList(
+    private void fillEntityLibrary() {
+        entityLibrary.addAll(Arrays.asList(
+                buildEntityLibraryList(
+                        "words",
                         "WORD_BABA", "WORD_DEFEAT", "WORD_FLAG",
                         "WORD_IS", "WORD_PUSH","WORD_ROCK",
                         "WORD_SINK","WORD_SKULL", "WORD_STOP",
                         "WORD_WALL", "WORD_WATER","WORD_WIN",
                         "WORD_YOU"
-                )),
-                new ArrayList<>(Arrays.asList("WALL", "WATER")),
-                new ArrayList<>(Arrays.asList("FLAG", "ROCK", "SKULL")),
-                new ArrayList<>(List.of("BABA"))
+                ),
+                buildITilesLibraryList(),
+                buildEntityLibraryList(
+                        "objects",
+                        "FLAG", "ROCK", "SKULL"
+                ),
+                buildEntityLibraryList(
+                        "characters",
+                        "BABA"
+                )
         ));
     }
+    private ArrayList<UIEntity> buildEntityLibraryList(String path, String... names) {
+        ArrayList<UIEntity> list = new ArrayList<>();
 
-    public void setupUI() {
-        fetchEntityList();
-        fetchEntity();
+        for (String name : names) {
+            list.add(new UIEntity(name, path, gp));
+        }
+
+        return list;
+    }
+    private ArrayList<UIEntity> buildITilesLibraryList() {
+        ArrayList<UIEntity> i_tiles = new ArrayList<>();
+
+        i_tiles.add(new UIEntity("WALL", 0, 0, "i_tiles", gp));
+
+        for (int i = 1; i < 3; i++) {
+            for (int c = 0; c < 3; c++) {
+                i_tiles.add(new UIEntity("WALL", i, c, "i_tiles", gp));
+            }
+        }
+        for (int i = 0; i < 4; i++) {
+            i_tiles.add(new UIEntity("WALL", 3, i, "i_tiles", gp));
+        }
+        for (int i = 0; i < 5; i++) {
+            i_tiles.add(new UIEntity("WALL", 4, i, "i_tiles", gp));
+        }
+
+        i_tiles.add(new UIEntity("WATER", "i_tiles", gp));
+
+        return i_tiles;
     }
 
     /**
@@ -83,46 +118,132 @@ public class UI {
 
     private void drawEdit() {
 
-        if (subState == 0) {
+        // User holding down Y
+        if (gp.keyH.yPressed) {
+            drawEntitiesMenu();
+            handleEntityDirectionPress();
+        }
+        // User let go of Y, run once
+        else if (wasYPressed) {
+            fetchEntity();
+        }
+        // User not holding down y
+        else {
             drawCurrentEntity();
-
-            // Entity currently selected, draw sprite under cursor
-            if (selectedEntity != null) {
-                g2.drawImage(selectedEntity.image, slotCol, slotRow, gp.tileSize, gp.tileSize, null);
-                g2.drawImage(cursor_select, slotCol, slotRow, gp.tileSize, gp.tileSize, null);
-            }
-            else {
-                g2.drawImage(cursor, slotCol, slotRow, gp.tileSize, gp.tileSize, null);
-            }
-
-            if (gp.keyH.yPressed) {
-                gp.keyH.yPressed = false;
-                subState = 1;
-            }
+            drawCursor();
 
             handleCursorAPress();
             handleCursorBPress();
             handleCursorDirectionPress();
         }
-        else {
-            drawEntitiesMenu();
-            handleEntityDirectionPress();
 
-            if (gp.keyH.yPressed || gp.keyH.aPressed || gp.keyH.bPressed) {
-                gp.keyH.yPressed = false;
-                gp.keyH.aPressed = false;
-                gp.keyH.bPressed = false;
-                subState = 0;
-                fetchEntity();
-                fetchEntityList();
+        // Detect if Y is pressed
+        wasYPressed = gp.keyH.yPressed;
+    }
+
+    private void drawEntitiesMenu() {
+
+        int cursorX = (gp.screenWidth / 2) - gp.tileSize;
+        int cursorY = (gp.screenHeight / 2) - gp.tileSize;
+
+        int scrollOffsetX = cursorX - (entityListIndex * gp.tileSize);
+        int scrollOffsetY = cursorY - (entityIndex * gp.tileSize);
+
+        int x, y;
+        for (int i = 0; i < entityLibrary.size(); i++) {
+
+            // Shift lists left or right while keeping cursor the same
+            x = scrollOffsetX + (i * gp.tileSize);
+
+            // Shift entire list down to cursor's Y if current list
+            y = entityListIndex == i ? scrollOffsetY : cursorY;
+
+            for (int c = 0; c < entityLibrary.get(i).size(); c++) {
+
+                // Reduce transparency if not active list
+                if (i != entityListIndex) {
+                    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.4f));
+                }
+                g2.drawImage(entityLibrary.get(i).get(c).getImage(), x, y, gp.tileSize, gp.tileSize, null);
+                g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+
+                // Draw cursor if current selection
+                if (entityListIndex == i && entityIndex == c) {
+                    g2.drawImage(cursor, cursorX, cursorY, gp.tileSize, gp.tileSize, null);
+                }
+
+                y += gp.tileSize;
             }
         }
     }
+    private void handleEntityDirectionPress() {
+        if (gp.keyH.upPressed) {
+            gp.keyH.upPressed = false;
+
+            entityIndex--;
+            if (entityIndex < 0) {
+                entityIndex = entityLibrary.get(entityListIndex).size() - 1;
+            }
+        }
+        else if (gp.keyH.downPressed) {
+            gp.keyH.downPressed = false;
+
+            entityIndex++;
+            if (entityIndex > entityLibrary.get(entityListIndex).size() - 1) {
+                entityIndex = 0;
+            }
+        }
+        else if (gp.keyH.leftPressed) {
+            gp.keyH.leftPressed = false;
+
+            entityListIndex--;
+            entityIndex = 0;
+            if (entityListIndex < 0) {
+                entityListIndex = entityLibrary.size() - 1;
+            }
+        }
+        else if (gp.keyH.rightPressed) {
+            gp.keyH.rightPressed = false;
+
+            entityListIndex++;
+            entityIndex = 0;
+            if (entityListIndex > entityLibrary.size() - 1) {
+                entityListIndex = 0;
+            }
+        }
+    }
+
+    public void fetchEntity() {
+        UIEntity uiEntity = entityLibrary.get(entityListIndex).get(entityIndex);
+
+        currentEntity = uiEntity.isWall() ?
+                gp.eGenerator.getWall(uiEntity.getOri(), uiEntity.getSide()) :
+                gp.eGenerator.getEntity(uiEntity.getName());
+
+        currentEntity.worldX = slotCol;
+        currentEntity.worldY = slotRow;
+
+        currentEntityList = gp.getEntityList(entityListIndex);
+    }
+
     private void drawCurrentEntity() {
+
+        UIEntity uiEntity = entityLibrary.get(entityListIndex).get(entityIndex);
         int x = gp.screenWidth - gp.tileSize;
         int y = 0;
 
-        g2.drawImage(currentEntity.image, x, y, gp.tileSize, gp.tileSize, null);
+        g2.drawImage(uiEntity.getImage(), x, y, gp.tileSize, gp.tileSize, null);
+    }
+    private void drawCursor() {
+
+        // Entity currently selected, draw sprite under cursor
+        if (selectedEntity != null) {
+            g2.drawImage(selectedEntity.image, slotCol, slotRow, gp.tileSize, gp.tileSize, null);
+            g2.drawImage(cursor_select, slotCol, slotRow, gp.tileSize, gp.tileSize, null);
+        }
+        else {
+            g2.drawImage(cursor, slotCol, slotRow, gp.tileSize, gp.tileSize, null);
+        }
     }
 
     private void handleCursorAPress() {
@@ -140,48 +261,12 @@ public class UI {
             }
             // Not currently holding entity, place down new one
             else {
-                Entity newEntity = gp.eGenerator.getEntity(currentEntity.name);
-                placeEntity(newEntity, currentEntityList);
+                fetchEntity();
+                placeEntity(currentEntity, currentEntityList);
+                currentEntity = null;
             }
         }
     }
-    private boolean entityGrabbed() {
-        for (Entity[] entities : gp.getAllEntities()) {
-            for (int i = 0; i < entities.length; i++) {
-                if (entities[i] == null) continue;
-
-                // Entity found at same X/Y
-                if (entities[i].worldX == slotCol && entities[i].worldY == slotRow) {
-
-                    // Trying to place selected entity on top of existing, not allowed
-                    if (selectedEntity != null) return true;
-
-                    // Grab new entity, remove from level
-                    selectedEntity = entities[i];
-                    selectedEntityList = entities;
-
-                    entities[i] = null;
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-    private void placeEntity(Entity entity, Entity[] entities) {
-        for (int i = 0; i < entities.length; i++) {
-            if (entities[i] == null) {
-
-                // Find the closest available spot, place entity in list
-                entity.worldX = slotCol;
-                entity.worldY = slotRow;
-                entities[i] = entity;
-
-                return;
-            }
-        }
-    }
-
     private void handleCursorBPress() {
         if (gp.keyH.bPressed) {
             gp.keyH.bPressed = false;
@@ -227,95 +312,42 @@ public class UI {
         }
     }
 
-    private void drawEntitiesMenu() {
+    private boolean entityGrabbed() {
+        for (Entity[] entities : gp.getAllEntities()) {
+            for (int i = 0; i < entities.length; i++) {
+                if (entities[i] == null) continue;
 
-        int cursorX = (gp.screenWidth / 2) - gp.tileSize;
-        int cursorY = (gp.screenHeight / 2) - gp.tileSize;
+                // Entity found at same X/Y
+                if (entities[i].worldX == slotCol && entities[i].worldY == slotRow) {
 
-        int scrollOffsetX = cursorX - (entityListIndex * gp.tileSize);
-        int scrollOffsetY = cursorY - (entityIndex * gp.tileSize);
+                    // Trying to place selected entity on top of existing, not allowed
+                    if (selectedEntity != null) return true;
 
-        int x, y;
-        for (int i = 0; i < entityNames.size(); i++) {
+                    // Grab new entity, remove from level
+                    selectedEntity = entities[i];
+                    selectedEntityList = entities;
 
-            // Shift lists left or right while keeping cursor the same
-            x = scrollOffsetX + (i * gp.tileSize);
-
-            // Shift entire list down to cursor's Y if current list
-            y = entityListIndex == i ? scrollOffsetY : cursorY;
-
-            for (int c = 0; c < entityNames.get(i).size(); c++) {
-                Entity e = gp.eGenerator.getEntity(entityNames.get(i).get(c));
-
-                // Reduce transparency if not active list
-                if (i != entityListIndex) {
-                    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.4f));
+                    entities[i] = null;
+                    return true;
                 }
-                g2.drawImage(e.image, x, y, gp.tileSize, gp.tileSize, null);
-                g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+            }
+        }
 
-                // Draw cursor if current selection
-                if (entityListIndex == i && entityIndex == c) {
-                    g2.drawImage(cursor, cursorX, cursorY, gp.tileSize, gp.tileSize, null);
-                }
+        return false;
+    }
+    private void placeEntity(Entity entity, Entity[] entities) {
+        for (int i = 0; i < entities.length; i++) {
+            if (entities[i] == null) {
 
-                y += gp.tileSize;
+                // Find the closest available spot, place entity in list
+                entity.worldX = slotCol;
+                entity.worldY = slotRow;
+                entities[i] = entity;
+
+                return;
             }
         }
     }
-    private void handleEntityDirectionPress() {
-        if (gp.keyH.upPressed) {
-            gp.keyH.upPressed = false;
-
-            entityIndex--;
-            if (entityIndex < 0) {
-                entityIndex = entityNames.get(entityListIndex).size() - 1;
-            }
-        }
-        else if (gp.keyH.downPressed) {
-            gp.keyH.downPressed = false;
-
-            entityIndex++;
-            if (entityIndex > entityNames.get(entityListIndex).size() - 1) {
-                entityIndex = 0;
-            }
-        }
-        else if (gp.keyH.leftPressed) {
-            gp.keyH.leftPressed = false;
-
-            entityListIndex--;
-            entityIndex = 0;
-            if (entityListIndex < 0) {
-                entityListIndex = entityNames.size() - 1;
-            }
-        }
-        else if (gp.keyH.rightPressed) {
-            gp.keyH.rightPressed = false;
-
-            entityListIndex++;
-            entityIndex = 0;
-            if (entityListIndex > entityNames.size() - 1) {
-                entityListIndex = 0;
-            }
-        }
-    }
-    private void fetchEntityList() {
-        currentEntityList = gp.getEntityList(entityListIndex);
-
-        String name = entityNames.get(entityListIndex).get(entityIndex);
-        currentEntity = gp.eGenerator.getEntity(name);
-
-        currentEntity.worldX = slotCol;
-        currentEntity.worldY = slotRow;
-    }
-    private void fetchEntity() {
-        String name = entityNames.get(entityListIndex).get(entityIndex);
-        currentEntity = gp.eGenerator.getEntity(name);
-
-        currentEntity.worldX = slotCol;
-        currentEntity.worldY = slotRow;
-    }
-
 
     /**
      * DRAW HUD

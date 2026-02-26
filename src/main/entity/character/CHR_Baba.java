@@ -21,13 +21,14 @@ public class CHR_Baba extends Entity {
     }
 
     protected void getImages() {
+        image = setupImage("/characters/baba");
         up1 = setupImage("/characters/baba_up_1");
         up2 = setupImage("/characters/baba_up_2");
         down1 = setupImage("/characters/baba_down_1");
         down2 = setupImage("/characters/baba_down_2");
         left1 = setupImage("/characters/baba_left_1");
         left2 = setupImage("/characters/baba_left_2");
-        image = right1 = setupImage("/characters/baba_right_1");
+        right1 = setupImage("/characters/baba_right_1");
         right2 = setupImage("/characters/baba_right_2");
     }
 }

@@ -10,6 +10,10 @@ import entity.word.*;
 
 public record EntityGenerator(GamePanel gp) {
 
+    public Entity getWall(int ori, int side) {
+        return new IT_Wall(gp, 0, 0, ori, side);
+    }
+
     public Entity getEntity(String eName) {
         return getCharacter(eName) != null
                 ? getCharacter(eName)
@@ -20,13 +24,13 @@ public record EntityGenerator(GamePanel gp) {
                         : getWord(eName);
     }
 
-    public Entity getCharacter(String cName) {
+    private Entity getCharacter(String cName) {
         return cName.equals(CHR_Baba.chrName) ?
             new CHR_Baba(gp, 0, 0)
             : null;
     }
 
-    public Entity getObject(String eName) {
+    private Entity getObject(String eName) {
         return switch (eName) {
             case OBJ_Flag.objName -> new OBJ_Flag(gp, 0, 0);
             case OBJ_Rock.objName -> new OBJ_Rock(gp, 0,0);
@@ -35,7 +39,7 @@ public record EntityGenerator(GamePanel gp) {
         };
     }
 
-    public Entity getITile(String eName) {
+    private Entity getITile(String eName) {
         return switch (eName) {
             case IT_Wall.iName -> new IT_Wall(gp, 0, 0, 0, 0);
             case IT_Water.iName -> new IT_Water(gp, 0,0);
@@ -43,7 +47,7 @@ public record EntityGenerator(GamePanel gp) {
         };
     }
 
-    public Entity getWord(String wName) {
+    private Entity getWord(String wName) {
         return switch(wName) {
             case WORD_Baba.wordName -> new WORD_Baba(gp, 0, 0);
             case WORD_Defeat.wordName -> new WORD_Defeat(gp, 0,0);
