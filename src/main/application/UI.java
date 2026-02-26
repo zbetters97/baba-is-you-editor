@@ -203,7 +203,6 @@ public class UI {
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
 
-                gp.saveLoad.save(gp.currentFileIndex);
                 commandNum = 0;
                 subState = 2;
             }
@@ -216,6 +215,10 @@ public class UI {
             g2.drawString(">", textX - 25, textY);
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
+
+                ArrayList<String> saveFiles = gp.saveLoad.getSaveFiles();
+                if (saveFiles.isEmpty()) return;
+
                 commandNum = 0;
                 subState = 3;
             }
@@ -248,7 +251,7 @@ public class UI {
     private void drawEditing_SaveLoad(boolean isSaving) {
 
         ArrayList<String> saveFiles = gp.saveLoad.getSaveFiles();
-        if (saveFiles.isEmpty()) return;
+        if (saveFiles.isEmpty() && !isSaving) return;
 
         g2.setColor(Color.WHITE);
 
@@ -277,7 +280,7 @@ public class UI {
                         gp.saveLoad.save(gp.currentFileIndex);
                     }
                     else {
-                        gp.saveLoad.load(gp.currentFileIndex, false);
+                        gp.saveLoad.load(gp.currentFileIndex);
                     }
                 }
             }
@@ -286,7 +289,7 @@ public class UI {
         }
 
         if (isSaving) {
-            text = saveFiles.size() + ")  NEW";
+            text = saveFiles.size() + 1 + ")  NEW";
             g2.drawString(text, textX, textY);
 
             if (commandNum == saveFiles.size()) {

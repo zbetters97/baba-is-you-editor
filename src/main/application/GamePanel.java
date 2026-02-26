@@ -107,12 +107,8 @@ public class GamePanel extends JPanel implements Runnable {
         gameState = editState;
         setupLevel();
 
-        boolean saveCreated = true;
         if (!saveDir.exists()) {
-            saveCreated = saveDir.mkdir();
-        }
-        if (saveCreated) {
-            saveLoad.load(currentFileIndex, false);
+            saveDir.mkdir();
         }
 
         if (fullScreenOn) {
@@ -361,7 +357,7 @@ public class GamePanel extends JPanel implements Runnable {
     private void handleKeyPress() {
         if (keyH.aPressed) {
             stateHandler.clearData();
-            saveLoad.load(currentFileIndex, true);
+            saveLoad.load(currentFileIndex);
             lHandler.scanForRules();
         }
         else if (keyH.yPressed) {

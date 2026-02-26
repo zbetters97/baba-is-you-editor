@@ -92,7 +92,7 @@ public record SaveLoad(GamePanel gp) {
         }
     }
 
-    public void load(int saveSlot, boolean reload) {
+    public void load(int saveSlot) {
 
         try {
             // Retrieve saved file
@@ -117,10 +117,6 @@ public record SaveLoad(GamePanel gp) {
                         entities[i] = null;
                         continue;
                     }
-
-                    // Game not reloaded / entity already exists in index, don't recreate
-                    boolean skipCreation = !reload && entities[i] != null;
-                    if (skipCreation) continue;
 
                     // Saved entity is a wall, get Wall entity...
                     // ...otherwise, get normal entity
