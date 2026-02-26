@@ -1,7 +1,7 @@
 package entity.tile_interactive;
 
 import application.GamePanel;
-import tile.InteractiveTile;
+import entity.InteractiveTile;
 
 public class IT_Water extends InteractiveTile {
 

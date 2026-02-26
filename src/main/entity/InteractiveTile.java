@@ -1,7 +1,6 @@
-package tile;
+package entity;
 
 import application.GamePanel;
-import entity.Entity;
 
 public class InteractiveTile extends Entity {
 

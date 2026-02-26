@@ -60,7 +60,7 @@ public record LogicHandler(GamePanel gp) {
             Arrays.fill(colWords, "");
 
             // Loop over all pre-existing words
-            for (Entity word : gp.words[gp.currentLvl]) {
+            for (Entity word : gp.words) {
                 if (word != null) {
                     int x = word.worldX / gp.tileSize;
                     int y = word.worldY / gp.tileSize;
@@ -92,7 +92,7 @@ public record LogicHandler(GamePanel gp) {
             Arrays.fill(rowWords, "");
 
             // Loop over all pre-existing words
-            for (Entity word : gp.words[gp.currentLvl]) {
+            for (Entity word : gp.words) {
                 if (word != null) {
                     int x = word.worldX / gp.tileSize;
                     int y = word.worldY / gp.tileSize;

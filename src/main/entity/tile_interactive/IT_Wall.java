@@ -1,7 +1,7 @@
 package entity.tile_interactive;
 
 import application.GamePanel;
-import tile.InteractiveTile;
+import entity.InteractiveTile;
 
 public class IT_Wall extends InteractiveTile {
     public static final String iName = "WALL";
@@ -13,6 +13,9 @@ public class IT_Wall extends InteractiveTile {
 
         worldX = x * gp.tileSize;
         worldY = y * gp.tileSize;
+
+        this.ori = ori;
+        this.side = side;
 
         image = up1 = down1 = left1 = right1 = setupImage("/i_tiles/" + iName.toLowerCase() + "_" + ori + "_" + side);
     }

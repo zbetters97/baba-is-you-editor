@@ -2,6 +2,7 @@ package data;
 
 import application.GamePanel;
 import entity.Entity;
+import entity.tile_interactive.IT_Wall;
 
 import java.io.*;
 import java.sql.Date;
@@ -25,48 +26,66 @@ public class SaveLoad {
         try {
             ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(gp.saveDir + saveFiles[saveSlot]));
 
-            // SAVE DATA TO DS
+            // Save data to DS object
             DataStorage ds = new DataStorage();
 
-            // CURRENT DATE/TIME
+            // Current data/time
             ds.file_date = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss").format(new Date(System.currentTimeMillis()));
 
-            ds.names = new String[4][][];
-            ds.names[0] = new String[gp.maxLvls][gp.words[0].length];
-            ds.names[1] = new String[gp.maxLvls][gp.iTiles[0].length];
-            ds.names[2] = new String[gp.maxLvls][gp.obj[0].length];
-            ds.names[3] = new String[gp.maxLvls][gp.chr[0].length];
+            // Initialize entity data lists
+            ds.names = new String[4][];
+            ds.names[0] = new String[gp.words.length];
+            ds.names[1] = new String[gp.iTiles.length];
+            ds.names[2] = new String[gp.obj.length];
+            ds.names[3] = new String[gp.chr.length];
 
-            ds.worldX = new int[4][][];
-            ds.worldX[0] = new int[gp.maxLvls][gp.words[0].length];
-            ds.worldX[1] = new int[gp.maxLvls][gp.iTiles[0].length];
-            ds.worldX[2] = new int[gp.maxLvls][gp.obj[0].length];
-            ds.worldX[3] = new int[gp.maxLvls][gp.chr[0].length];
+            ds.worldX = new int[4][];
+            ds.worldX[0] = new int[gp.words.length];
+            ds.worldX[1] = new int[gp.iTiles.length];
+            ds.worldX[2] = new int[gp.obj.length];
+            ds.worldX[3] = new int[gp.chr.length];
 
-            ds.worldY = new int[4][][];
-            ds.worldY[0] = new int[gp.maxLvls][gp.words[0].length];
-            ds.worldY[1] = new int[gp.maxLvls][gp.iTiles[0].length];
-            ds.worldY[2] = new int[gp.maxLvls][gp.obj[0].length];
-            ds.worldY[3] = new int[gp.maxLvls][gp.chr[0].length];
+            ds.worldY = new int[4][];
+            ds.worldY[0] = new int[gp.words.length];
+            ds.worldY[1] = new int[gp.iTiles.length];
+            ds.worldY[2] = new int[gp.obj.length];
+            ds.worldY[3] = new int[gp.chr.length];
 
-            Entity[][][] entityLists = { gp.words, gp.iTiles, gp.obj, gp.chr };
+            // Lists to store wall type values
+            ds.ori = new int[gp.iTiles.length];
+            ds.side = new int[gp.iTiles.length];
+
+            // Parse over each entity type
+            Entity[][] entityLists = { gp.words, gp.iTiles, gp.obj, gp.chr };
             for (int type = 0; type < entityLists.length; type++) {
 
-                Entity[][] entitiesByLevel =  entityLists[type];
+                // Grab each entity array
+                Entity[] entities =  entityLists[type];
 
-                for (int level = 0; level < gp.maxLvls; level++) {
+                for (int i = 0; i < entities.length; i++) {
 
-                    for (int i = 0; i < entitiesByLevel[level].length; i++) {
+                    Entity e =  entities[i];
+                    if (e == null) {
+                        ds.names[type][i] = "NULL";
 
-                        Entity e =  entitiesByLevel[level][i];
-                        if (e == null) {
-                            ds.names[type][level][i] = "NULL";
+                        if (type == 1) {
+                            ds.ori[i] = -1;
+                            ds.side[i] = -1;
+                        }
+                    }
+                    else {
+                        ds.names[type][i] = e.name;
+                        ds.worldX[type][i] = e.worldX;
+                        ds.worldY[type][i] = e.worldY;
+
+                        if (type == 1 && e instanceof IT_Wall) {
+                            ds.ori[i] = e.ori;
+                            ds.side[i] = e.side;
                         }
                         else {
-                            ds.names[type][level][i] = e.name;
-                            ds.worldX[type][level][i] = e.worldX;
-                            ds.worldY[type][level][i] = e.worldY;
-                        }
+                            ds.ori[i] = -1;
+                            ds.side[i] = -1;
+                        }                        
                     }
                 }
             }
@@ -88,32 +107,34 @@ public class SaveLoad {
             // LOAD DATA FROM DS
             DataStorage ds = (DataStorage) ois.readObject();
 
-            Entity[][][] entityLists = { gp.words, gp.iTiles, gp.obj, gp.chr };
+            Entity[][] entityLists = { gp.words, gp.iTiles, gp.obj, gp.chr };
             for (int type = 0; type < entityLists.length; type++) {
 
-                Entity[][] entitiesByLevel =  entityLists[type];
+                Entity[] entities =  entityLists[type];
 
-                for (int level = 0; level < gp.maxLvls; level++) {
+                for (int i = 0; i < entities.length; i++) {
 
-                    for (int i = 0; i < entitiesByLevel[level].length; i++) {
+                    String name = ds.names[type][i];
 
-                        String name = ds.names[type][level][i];
+                    if ("NULL".equals(name)) {
+                        entities[i] = null;
+                        continue;
+                    }
 
-                        if ("NULL".equals(name)) {
-                            entityLists[type][level][i] = null;
-                            continue;
-                        }
+                    boolean shouldCreate = reload || entities[i] == null;
 
-                        boolean shouldCreate = reload || entityLists[type][level][i] == null;
+                    if (shouldCreate) {
+                        Entity e = (type == 1 && name.equals(IT_Wall.iName)) ?
+                                gp.eGenerator.getWall(ds.ori[i], ds.side[i]) :
+                                gp.eGenerator.getEntity(name);
 
-                        if (shouldCreate) {
-                            Entity e = gp.eGenerator.getEntity(name);
-                            e.worldX = ds.worldX[type][level][i];
-                            e.worldY = ds.worldY[type][level][i];
-                            entityLists[type][level][i] = e;
-                        }
+                        e.worldX = ds.worldX[type][i];
+                        e.worldY = ds.worldY[type][i];
+
+                        entities[i] = e;
                     }
                 }
+
             }
 
             ois.close();

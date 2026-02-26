@@ -30,10 +30,10 @@ public class StateHandler {
      * Called by GamePanel when canSave is TRUE
      */
     public void saveState() {
-        State[] wordStateStack = saveEntityStates(gp.words[gp.currentLvl]);
-        State[] objStateStack = saveEntityStates(gp.obj[gp.currentLvl]);
-        State[] itStateStack = saveEntityStates(gp.iTiles[gp.currentLvl]);
-        State[] chrStateStack = saveEntityStates(gp.chr[gp.currentLvl]);
+        State[] wordStateStack = saveEntityStates(gp.words);
+        State[] objStateStack = saveEntityStates(gp.obj);
+        State[] itStateStack = saveEntityStates(gp.iTiles);
+        State[] chrStateStack = saveEntityStates(gp.chr);
 
         undoStack.push(new UndoFrame(wordStateStack, objStateStack, itStateStack, chrStateStack));
 
@@ -83,10 +83,10 @@ public class StateHandler {
 
         UndoFrame frame = undoStack.pop();
 
-        loadEntityStates(frame.words(), gp.words[gp.currentLvl]);
-        loadEntityStates(frame.obj(), gp.obj[gp.currentLvl]);
-        loadEntityStates(frame.iTiles(), gp.iTiles[gp.currentLvl]);
-        loadEntityStates(frame.chr(), gp.chr[gp.currentLvl]);
+        loadEntityStates(frame.words(), gp.words);
+        loadEntityStates(frame.obj(), gp.obj);
+        loadEntityStates(frame.iTiles(), gp.iTiles);
+        loadEntityStates(frame.chr(), gp.chr);
     }
 
     /**

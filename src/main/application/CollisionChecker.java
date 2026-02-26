@@ -33,31 +33,6 @@ public record CollisionChecker(GamePanel gp) {
     }
 
     /**
-     * TILE BLOCKED
-     * @param entity The entity that is moving a tile
-     * @param dir The direction the entity is moving
-     * @return True if tile with collision is on next tile
-     */
-    public boolean tileBlocked(Entity entity, GamePanel.Direction dir) {
-
-        Point next = getNextTilePosition(entity, dir);
-
-        // Tile out of bounds
-        if (gp.cChecker.isOutOfBounds(next.x, next.y)) {
-            return true;
-        }
-
-        int col = next.x / gp.tileSize;
-        int row = next.y / gp.tileSize;
-
-        // Retrieve tile object at index
-        int tile = gp.tileM.lvlTileNum[gp.currentLvl][col][row];
-
-        // True if tile has collision
-        return gp.tileM.tiles[tile].hasCollision;
-    }
-
-    /**
      * GET NEXT TILE POSITION
      * Gets the X/Y the entity is moving towards
      * @param entity The entity that is moving
@@ -85,24 +60,24 @@ public record CollisionChecker(GamePanel gp) {
      * @param targets List of entities to check collision against
      * @return Entity the given entity will interact with, -1 if none
      */
-    public int checkEntity(Entity entity, Entity[][] targets) {
+    public int checkEntity(Entity entity, Entity[] targets) {
 
         int index = -1;
-        for (int i = 0; i < targets[0].length; i++) {
-            if (targets[gp.currentLvl][i] == null) continue;
+        for (int i = 0; i < targets.length; i++) {
+            if (targets[i] == null) continue;
 
             entity.hitbox.x = entity.worldX;
             entity.hitbox.y = entity.worldY;
 
-            targets[gp.currentLvl][i].hitbox.x = targets[gp.currentLvl][i].worldX;
-            targets[gp.currentLvl][i].hitbox.y = targets[gp.currentLvl][i].worldY;
+            targets[i].hitbox.x = targets[i].worldX;
+            targets[i].hitbox.y = targets[i].worldY;
 
             // Entity and target collides
-            if (entity.hitbox.intersects(targets[gp.currentLvl][i].hitbox)) {
-                if (targets[gp.currentLvl][i] == entity) continue;
+            if (entity.hitbox.intersects(targets[i].hitbox)) {
+                if (targets[i] == entity) continue;
 
                 index = i;
-                if (targets[gp.currentLvl][i].properties.contains(Entity.Property.STOP) || targets[gp.currentLvl][i].collisionOn) {
+                if (targets[i].properties.contains(Entity.Property.STOP) || targets[i].collisionOn) {
                     entity.collisionOn = true;
                 }
             }
@@ -116,8 +91,8 @@ public record CollisionChecker(GamePanel gp) {
             entity.hitbox.y = 0;
 
             // Reset target solid area
-            targets[gp.currentLvl][i].hitbox.x = 0;
-            targets[gp.currentLvl][i].hitbox.y = 0;
+            targets[i].hitbox.x = 0;
+            targets[i].hitbox.y = 0;
         }
 
         return index;

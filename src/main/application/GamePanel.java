@@ -4,7 +4,6 @@ import data.EntityGenerator;
 import data.SaveLoad;
 import data.StateHandler;
 import entity.Entity;
-import tile.TileManager;
 
 import javax.swing.*;
 import java.awt.*;
@@ -47,11 +46,6 @@ public class GamePanel extends JPanel implements Runnable {
     public int maxWorldCol = 33;
     public int maxWorldRow = 18;
 
-    /* MAPS */
-    public final String[] lvlFiles = {"lvl_1.txt"};
-    public final int maxLvls = lvlFiles.length;
-    public int currentLvl = 0;
-
     /* FULL SCREEN SETTINGS */
     public boolean fullScreenOn = false;
     private int screenWidth2 = screenWidth;
@@ -64,8 +58,6 @@ public class GamePanel extends JPanel implements Runnable {
     public final int editState = 2;
 
     /* HANDLERS */
-    public TileManager tileM = new TileManager(this);
-    public AssetSetter aSetter = new AssetSetter(this);
     public CollisionChecker cChecker = new CollisionChecker(this);
     public final LogicHandler lHandler = new LogicHandler(this);
     public final EntityGenerator eGenerator = new EntityGenerator(this);
@@ -76,10 +68,10 @@ public class GamePanel extends JPanel implements Runnable {
     public int currentFileIndex = 0;
 
     /* ENTITIES */
-    public Entity[][] chr = new Entity[maxLvls][50];
-    public Entity[][] obj = new Entity[maxLvls][50];
-    public Entity[][] words = new Entity[maxLvls][50];
-    public Entity[][] iTiles = new Entity[maxLvls][100];
+    public Entity[] chr = new Entity[50];
+    public Entity[] obj = new Entity[50];
+    public Entity[] words = new Entity[50];
+    public Entity[] iTiles = new Entity[100];
 
     /* GENERAL VALUES */
     public boolean showGrid = true;
@@ -376,6 +368,7 @@ public class GamePanel extends JPanel implements Runnable {
 
     private void handleKeyPress() {
         if (keyH.aPressed) {
+            stateHandler.clearData();
             saveLoad.load(currentFileIndex, true);
             lHandler.scanForRules();
         }
@@ -397,7 +390,6 @@ public class GamePanel extends JPanel implements Runnable {
      */
     private void drawToTempScreen() {
         clearBackBuffer();
-        tileM.draw(g2);
         drawEntities();
         ui.draw(g2);
     }
@@ -445,23 +437,21 @@ public class GamePanel extends JPanel implements Runnable {
     public void setupLevel() {
         win = false;
         stateHandler.clearData();
-        tileM.loadLvl();
-        aSetter.setup();
         lHandler.scanForRules();
         ui.fetchEntity();
     }
 
     public Entity[][] getAllEntities() {
-        return new Entity[][]{iTiles[currentLvl], obj[currentLvl], chr[currentLvl], words[currentLvl]};
+        return new Entity[][]{iTiles, obj, chr, words};
     }
     public Entity[][] getAllRegularEntities() {
-        return new Entity[][] { iTiles[currentLvl], obj[currentLvl], chr[currentLvl] };
+        return new Entity[][] { iTiles, obj, chr };
     }
 
     public Entity[] getEntityList(int index) {
-        if (index <= 0) return words[0];
-        else if (index == 1) return iTiles[0];
-        else if (index == 2) return obj[0];
-        else return chr[0];
+        if (index <= 0) return words;
+        else if (index == 1) return iTiles;
+        else if (index == 2) return obj;
+        else return chr;
     }
 }

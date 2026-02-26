@@ -50,6 +50,9 @@ public class Entity {
     public Rectangle hitbox = new Rectangle(0, 0, 48, 48);
     public boolean collisionOn = false;
 
+    /* MISC VALUES */
+    public int ori, side;
+
     /* SPRITE ATTRIBUTES */
     public BufferedImage image;
     protected BufferedImage up1;
@@ -127,7 +130,7 @@ public class Entity {
             case RIGHT-> worldX += speed;
         }
 
-        if (name.equals(CHR_Baba.chrName)) {
+        if (this instanceof CHR_Baba) {
             cycleSprites();
         }
 
@@ -145,7 +148,7 @@ public class Entity {
         else if (previousWorldY > worldY) worldY += speed;
         else if (previousWorldY < worldY) worldY -= speed;
 
-        if (name.equals(CHR_Baba.chrName)) {
+        if (this instanceof CHR_Baba) {
             cycleSprites();
         }
 
@@ -197,10 +200,6 @@ public class Entity {
      * @return True if able to move, false if not
      */
     public boolean canMove(Entity entity, GamePanel.Direction dir, Set<Entity> moveSet) {
-        // Tile with collision in the way
-        if (gp.cChecker.tileBlocked(entity, dir)) {
-            return false;
-        }
 
         // Get all entities sitting on the next tile
         List<Entity> stack = gp.cChecker.getEntitiesAtNextTile(entity, dir);
@@ -231,14 +230,14 @@ public class Entity {
      * Checks each type of collision for given entity list
      * @param entities List of entities to check collision against
      */
-    private void checkEntities(Entity[][] entities) {
+    private void checkEntities(Entity[] entities) {
         int ent = gp.cChecker.checkEntity(this, entities);
 
         if (ent != -1) {
-            checkSink(entities[gp.currentLvl][ent]);
-            checkWin(entities[gp.currentLvl][ent]);
-            checkDefeat(entities[gp.currentLvl][ent]);
-            checkWin(entities[gp.currentLvl][ent]);
+            checkSink(entities[ent]);
+            checkWin(entities[ent]);
+            checkDefeat(entities[ent]);
+            checkWin(entities[ent]);
         }
     }
 
