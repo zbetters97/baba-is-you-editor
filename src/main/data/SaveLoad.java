@@ -8,23 +8,11 @@ import java.io.*;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 
-public class SaveLoad {
-
-    public String[] saveFiles = {
-            File.separator + "save_1.dat",
-            File.separator + "save_2.dat",
-            File.separator + "save_3.dat",
-    };
-
-    private final GamePanel gp;
-
-    public SaveLoad(GamePanel gp) {
-        this.gp = gp;
-    }
+public record SaveLoad(GamePanel gp) {
 
     public void save(int saveSlot) {
         try {
-            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(gp.saveDir + saveFiles[saveSlot]));
+            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(gp.saveDir + "/save_" + saveSlot + ".dat"));
 
             // Save data to DS object
             DataStorage ds = new DataStorage();
@@ -56,15 +44,16 @@ public class SaveLoad {
             ds.side = new int[gp.iTiles.length];
 
             // Parse over each entity type
-            Entity[][] entityLists = { gp.words, gp.iTiles, gp.obj, gp.chr };
+            Entity[][] entityLists = {gp.words, gp.iTiles, gp.obj, gp.chr};
             for (int type = 0; type < entityLists.length; type++) {
 
-                // Grab each entity array
-                Entity[] entities =  entityLists[type];
-
+                // Parse over each entity
+                Entity[] entities = entityLists[type];
                 for (int i = 0; i < entities.length; i++) {
 
-                    Entity e =  entities[i];
+                    Entity e = entities[i];
+
+                    // Entity not present
                     if (e == null) {
                         ds.names[type][i] = "NULL";
 
@@ -72,75 +61,82 @@ public class SaveLoad {
                             ds.ori[i] = -1;
                             ds.side[i] = -1;
                         }
-                    }
-                    else {
-                        ds.names[type][i] = e.name;
-                        ds.worldX[type][i] = e.worldX;
-                        ds.worldY[type][i] = e.worldY;
 
-                        if (type == 1 && e instanceof IT_Wall) {
-                            ds.ori[i] = e.ori;
-                            ds.side[i] = e.side;
-                        }
-                        else {
-                            ds.ori[i] = -1;
-                            ds.side[i] = -1;
-                        }                        
+                        continue;
+                    }
+
+                    // Entity found, save data
+                    ds.names[type][i] = e.name;
+                    ds.worldX[type][i] = e.worldX;
+                    ds.worldY[type][i] = e.worldY;
+
+                    // Entity is a wall, save variance
+                    if (type == 1 && e instanceof IT_Wall) {
+                        ds.ori[i] = e.ori;
+                        ds.side[i] = e.side;
+                    } else {
+                        ds.ori[i] = -1;
+                        ds.side[i] = -1;
                     }
                 }
             }
 
-            // WRITE THE DS OBJECT
+            // Write to the DS object
             oos.writeObject(ds);
             oos.close();
-        }
-        catch (Exception e) {
-            System.out.println("SAVE ERROR! " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("SAVE ERROR: " + e.getMessage());
         }
     }
 
     public void load(int saveSlot, boolean reload) {
 
         try {
-            ObjectInputStream ois = new ObjectInputStream(new FileInputStream(gp.saveDir + saveFiles[saveSlot]));
+            // Retrieve saved file
+            ObjectInputStream ois = new ObjectInputStream(new FileInputStream(gp.saveDir + "/save_" + saveSlot + ".dat"));
 
-            // LOAD DATA FROM DS
+            // Load data to the DS object
             DataStorage ds = (DataStorage) ois.readObject();
 
-            Entity[][] entityLists = { gp.words, gp.iTiles, gp.obj, gp.chr };
+            // Parse over each entity type
+            Entity[][] entityLists = {gp.words, gp.iTiles, gp.obj, gp.chr};
             for (int type = 0; type < entityLists.length; type++) {
 
-                Entity[] entities =  entityLists[type];
-
+                // Parse over each entity
+                Entity[] entities = entityLists[type];
                 for (int i = 0; i < entities.length; i++) {
 
+                    // Grab saved name from file
                     String name = ds.names[type][i];
 
+                    // No data, skip
                     if ("NULL".equals(name)) {
                         entities[i] = null;
                         continue;
                     }
 
-                    boolean shouldCreate = reload || entities[i] == null;
+                    // Game not reloaded / entity already exists in index, don't recreate
+                    boolean skipCreation = !reload && entities[i] != null;
+                    if (skipCreation) continue;
 
-                    if (shouldCreate) {
-                        Entity e = (type == 1 && name.equals(IT_Wall.iName)) ?
-                                gp.eGenerator.getWall(ds.ori[i], ds.side[i]) :
-                                gp.eGenerator.getEntity(name);
+                    // Saved entity is a wall, get Wall entity...
+                    // ...otherwise, get normal entity
+                    boolean isWall = type == 1 && name.equals(IT_Wall.iName);
+                    Entity e = isWall ?
+                            gp.eGenerator.getWall(ds.ori[i], ds.side[i]) :
+                            gp.eGenerator.getEntity(name);
 
-                        e.worldX = ds.worldX[type][i];
-                        e.worldY = ds.worldY[type][i];
+                    e.worldX = ds.worldX[type][i];
+                    e.worldY = ds.worldY[type][i];
 
-                        entities[i] = e;
-                    }
+                    // Assign to GamePanel entity list
+                    entities[i] = e;
                 }
-
             }
 
             ois.close();
-        }
-        catch (Exception e) {
-            System.out.println("LOAD ERROR! " +e.getMessage());
+        } catch (Exception e) {
+            System.out.println("LOAD ERROR: " + e.getMessage());
         }
     }
 }

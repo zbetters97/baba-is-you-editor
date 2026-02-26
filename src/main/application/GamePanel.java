@@ -449,9 +449,9 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public Entity[] getEntityList(int index) {
-        if (index <= 0) return words;
-        else if (index == 1) return iTiles;
-        else if (index == 2) return obj;
+        if (index <= 1) return words;
+        else if (index == 2) return iTiles;
+        else if (index == 3) return obj;
         else return chr;
     }
 }
