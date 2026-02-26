@@ -115,7 +115,7 @@ public class GamePanel extends JPanel implements Runnable {
         gameState = editState;
         setupLevel();
 
-        boolean saveCreated = false;
+        boolean saveCreated = true;
         if (!saveDir.exists()) {
             saveCreated = saveDir.mkdir();
         }
