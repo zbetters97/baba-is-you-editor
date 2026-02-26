@@ -100,13 +100,26 @@ public record CollisionChecker(GamePanel gp) {
 
     /**
      * IS OUT-OF-BOUNDS
-     * Checks if the given entity's hitbox is out of world boundary
+     * Checks if the given X/Y is out of world boundary
      * @param x X coordinate of entity
      * @param y Y coordinate of entity
      * @return True if entity is out of bounds
      */
-    private boolean isOutOfBounds(int x, int y) {
+    public boolean isOutOfBounds(int x, int y) {
         return x < 0 || x > gp.screenWidth - gp.tileSize ||
                 y < 0 || y > gp.screenHeight - gp.tileSize;
+    }
+
+    /**
+     * IS OUT-OF-BOUNDS
+     * Checks if the given entity's hitbox is out of world boundary
+     * @param entity Entity to check out of bounds on
+     * @param dir Direction Entity is pointing towards
+     * @return True if entity is out of bounds
+     */
+    public boolean isOutOfBounds(Entity entity, GamePanel.Direction dir) {
+        Point next = getNextTilePosition(entity, dir);
+        return next.x < 0 || next.x > gp.screenWidth - gp.tileSize ||
+                next.y < 0 || next.y > gp.screenHeight - gp.tileSize;
     }
 }

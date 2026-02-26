@@ -51,11 +51,13 @@ public class UI {
         entityLibrary.addAll(Arrays.asList(
                 buildEntityLibraryList(
                         "words",
-                        "WORD_BABA", "WORD_DEFEAT", "WORD_FLAG",
-                        "WORD_IS", "WORD_PUSH","WORD_ROCK",
-                        "WORD_SINK","WORD_SKULL", "WORD_STOP",
-                        "WORD_WALL", "WORD_WATER","WORD_WIN",
-                        "WORD_YOU"
+                        "WORD_IS", "WORD_BABA", "WORD_FLAG", "WORD_ROCK",
+                        "WORD_SKULL", "WORD_WALL", "WORD_WATER"
+                ),
+                buildEntityLibraryList(
+                        "words",
+                        "WORD_DEFEAT", "WORD_PUSH", "WORD_SINK",
+                        "WORD_STOP", "WORD_WIN", "WORD_YOU"
                 ),
                 buildITilesLibraryList(),
                 buildEntityLibraryList(

@@ -201,6 +201,10 @@ public class Entity {
      */
     public boolean canMove(Entity entity, GamePanel.Direction dir, Set<Entity> moveSet) {
 
+        if (gp.cChecker.isOutOfBounds(entity, dir)) {
+            return false;
+        }
+
         // Get all entities sitting on the next tile
         List<Entity> stack = gp.cChecker.getEntitiesAtNextTile(entity, dir);
         for (Entity e : stack) {
