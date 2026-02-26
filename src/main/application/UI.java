@@ -23,6 +23,9 @@ public class UI {
     private int slotCol = 0;
     private int slotRow = 0;
 
+    private int subState = 0;
+    private int commandNum = 0;
+
     /* ASSET HANDLERS */
     private final ArrayList<ArrayList<UIEntity>> entityLibrary = new ArrayList<>();
     private int entityListIndex = 0;
@@ -138,31 +141,197 @@ public class UI {
     }
 
     private void drawEditState() {
+        if (subState == 0) {
+            // User holding down Y
+            if (gp.keyH.yPressed) {
+                drawEditing_Menu();
+            }
+            // User let go of Y, run once
+            else if (wasYPressed) {
+                editing_GetEntity();
+            }
+            // User not holding down y
+            else {
+                drawEditing_Map();
+            }
 
-        // User holding down Y
-        if (gp.keyH.yPressed) {
-            drawEntitiesMenu();
-            handleEntityDirectionPress();
+            // Detect if Y is pressed
+            wasYPressed = gp.keyH.yPressed;
+
+            if (gp.keyH.startPressed) {
+                gp.keyH.startPressed = false;
+                subState = 1;
+            }
         }
-        // User let go of Y, run once
-        else if (wasYPressed) {
-            fetchEntity();
+        else if (subState == 1) {
+            drawEditing_Pause();
         }
-        // User not holding down y
         else {
-            drawCurrentEntity();
-            drawCursor();
-
-            handleCursorAPress();
-            handleCursorBPress();
-            handleCursorDirectionPress();
+            drawEditing_SaveLoad(subState == 2);
         }
-
-        // Detect if Y is pressed
-        wasYPressed = gp.keyH.yPressed;
     }
 
-    private void drawEntitiesMenu() {
+    private void drawEditing_Pause() {
+        int frameX = gp.tileSize * 2;
+        int frameY = gp.tileSize;
+
+        g2.setColor(Color.WHITE);
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 32F));
+
+        int textX = frameX + gp.tileSize * 2;
+        int textY = frameY + (gp.tileSize * 2 + 10);
+
+        // PLAY
+        g2.drawString("Play Level", textX, textY);
+        if (commandNum == 0) {
+            g2.drawString(">", textX - 25, textY);
+            if (gp.keyH.aPressed) {
+                gp.keyH.aPressed = false;
+
+                commandNum = 0;
+                subState = 0;
+                gp.gameState = gp.playState;
+                gp.setupLevel();
+            }
+        }
+
+        // SAVE
+        textY += gp.tileSize;
+        g2.drawString("Save Level", textX, textY);
+        if (commandNum == 1) {
+            g2.drawString(">", textX - 25, textY);
+            if (gp.keyH.aPressed) {
+                gp.keyH.aPressed = false;
+
+                gp.saveLoad.save(gp.currentFileIndex);
+                commandNum = 0;
+                subState = 2;
+            }
+        }
+
+        // LOAD
+        textY += gp.tileSize;
+        g2.drawString("Load Level", textX, textY);
+        if (commandNum == 2) {
+            g2.drawString(">", textX - 25, textY);
+            if (gp.keyH.aPressed) {
+                gp.keyH.aPressed = false;
+                commandNum = 0;
+                subState = 3;
+            }
+        }
+
+        if (gp.keyH.bPressed || gp.keyH.startPressed) {
+            gp.keyH.bPressed = false;
+            gp.keyH.startPressed = false;
+            subState = 0;
+            commandNum = 0;
+        }
+
+        if (gp.keyH.upPressed) {
+            gp.keyH.upPressed = false;
+
+            commandNum--;
+            if (commandNum < 0) {
+                commandNum = 0;
+            }
+        }
+        else if (gp.keyH.downPressed) {
+            gp.keyH.downPressed = false;
+
+            commandNum++;
+            if (commandNum > 2) {
+                commandNum = 2;
+            }
+        }
+    }
+    private void drawEditing_SaveLoad(boolean isSaving) {
+
+        ArrayList<String> saveFiles = gp.saveLoad.getSaveFiles();
+        if (saveFiles.isEmpty()) return;
+
+        g2.setColor(Color.WHITE);
+
+        int frameX = gp.tileSize * 2;
+        int frameY = gp.tileSize;
+
+        int textX = frameX + gp.tileSize * 2;
+        int textY = frameY + (gp.tileSize * 2 + 10);
+        String text;
+
+        for (int i = 0; i < saveFiles.size(); i++) {
+            text = i + 1 + ")  " + gp.saveLoad.getFileName(i);
+            g2.drawString(text, textX, textY);
+
+            if (commandNum == i) {
+                g2.drawString(">", textX - 25, textY);
+
+                if (gp.keyH.aPressed) {
+                    gp.keyH.aPressed = false;
+
+                    gp.currentFileIndex = commandNum;
+                    commandNum = 0;
+                    subState = 0;
+
+                    if (isSaving) {
+                        gp.saveLoad.save(gp.currentFileIndex);
+                    }
+                    else {
+                        gp.saveLoad.load(gp.currentFileIndex, false);
+                    }
+                }
+            }
+
+            textY += gp.tileSize;
+        }
+
+        if (isSaving) {
+            text = saveFiles.size() + ")  NEW";
+            g2.drawString(text, textX, textY);
+
+            if (commandNum == saveFiles.size()) {
+                g2.drawString(">", textX - 25, textY);
+
+                if (gp.keyH.aPressed) {
+                    gp.keyH.aPressed = false;
+                    gp.currentFileIndex = commandNum;
+                    gp.saveLoad.save(gp.currentFileIndex);
+                    commandNum = 0;
+                    subState = 1;
+                }
+            }
+        }
+
+        if (gp.keyH.bPressed || gp.keyH.startPressed) {
+            gp.keyH.bPressed = false;
+            gp.keyH.startPressed = false;
+            commandNum = 0;
+            subState = 1;
+        }
+
+        if (gp.keyH.upPressed) {
+            gp.keyH.upPressed = false;
+
+            commandNum--;
+            if (commandNum < 0) {
+                commandNum = 0;
+            }
+        }
+        else if (gp.keyH.downPressed) {
+            gp.keyH.downPressed = false;
+
+            commandNum++;
+            if (commandNum > saveFiles.size()) {
+                commandNum = saveFiles.size();
+            }
+        }
+    }
+
+    private void drawEditing_Menu() {
+        editing_menu();
+        editing_menu_Input_Dir();
+    }
+    private void editing_menu() {
 
         int cursorX = (gp.screenWidth / 2) - gp.tileSize;
         int cursorY = (gp.screenHeight / 2) - gp.tileSize;
@@ -197,7 +366,7 @@ public class UI {
             }
         }
     }
-    private void handleEntityDirectionPress() {
+    private void editing_menu_Input_Dir() {
         if (gp.keyH.upPressed) {
             gp.keyH.upPressed = false;
 
@@ -234,7 +403,7 @@ public class UI {
         }
     }
 
-    public void fetchEntity() {
+    public void editing_GetEntity() {
         UIEntity uiEntity = entityLibrary.get(entityListIndex).get(entityIndex);
 
         currentEntity = uiEntity.isWall() ?
@@ -247,6 +416,17 @@ public class UI {
         currentEntityList = gp.getEntityList(entityListIndex);
     }
 
+    private void drawEditing_Map() {
+        editing_Map_HUD();
+        editing_Map_Cursor();
+
+        editing_Map_Input_A();
+        editing_Map_Input_B();
+        editing_Map_Input_Dir();
+    }
+    private void editing_Map_HUD() {
+        drawCurrentEntity();
+    }
     private void drawCurrentEntity() {
 
         UIEntity uiEntity = entityLibrary.get(entityListIndex).get(entityIndex);
@@ -255,7 +435,7 @@ public class UI {
 
         g2.drawImage(uiEntity.getImage(), x, y, gp.tileSize, gp.tileSize, null);
     }
-    private void drawCursor() {
+    private void editing_Map_Cursor() {
 
         // Entity currently selected, draw sprite under cursor
         if (selectedEntity != null) {
@@ -267,28 +447,28 @@ public class UI {
         }
     }
 
-    private void handleCursorAPress() {
+    private void editing_Map_Input_A() {
         if (gp.keyH.aPressed) {
             gp.keyH.aPressed = false;
 
             // Cursor on existing entity and grabbed, return
-            if (entityGrabbed()) return;
+            if (editing_GrabEntity()) return;
 
             // Entity currently grabbed, place down
             if (selectedEntity != null) {
-                placeEntity(selectedEntity, selectedEntityList);
+                editing_PlaceEntity(selectedEntity, selectedEntityList);
                 selectedEntity = null;
                 selectedEntityList = null;
             }
             // Not currently holding entity, place down new one
             else {
-                fetchEntity();
-                placeEntity(currentEntity, currentEntityList);
+                editing_GetEntity();
+                editing_PlaceEntity(currentEntity, currentEntityList);
                 currentEntity = null;
             }
         }
     }
-    private void handleCursorBPress() {
+    private void editing_Map_Input_B() {
         if (gp.keyH.bPressed) {
             gp.keyH.bPressed = false;
 
@@ -306,7 +486,7 @@ public class UI {
             }
         }
     }
-    private void handleCursorDirectionPress() {
+    private void editing_Map_Input_Dir() {
         if (gp.keyH.upPressed) {
             gp.keyH.upPressed = false;
             if (slotRow - gp.tileSize >= 0) {
@@ -333,7 +513,7 @@ public class UI {
         }
     }
 
-    private boolean entityGrabbed() {
+    private boolean editing_GrabEntity() {
         for (Entity[] entities : gp.getAllEntities()) {
             for (int i = 0; i < entities.length; i++) {
                 if (entities[i] == null) continue;
@@ -356,7 +536,7 @@ public class UI {
 
         return false;
     }
-    private void placeEntity(Entity entity, Entity[] entities) {
+    private void editing_PlaceEntity(Entity entity, Entity[] entities) {
         for (int i = 0; i < entities.length; i++) {
             if (entities[i] == null) {
 
@@ -371,7 +551,7 @@ public class UI {
     }
 
     private void drawPlayState() {
-        drawHUD();
+        playing_HUD();
     }
 
     /**
@@ -379,8 +559,8 @@ public class UI {
      * Draws the HUD during play state
      * called by draw()
      */
-    private void drawHUD() {
-        drawDebug();
+    private void playing_HUD() {
+        playing_Debug();
     }
 
     /**
@@ -388,7 +568,7 @@ public class UI {
      * UI for debug information
      * Called by drawHUD()
      */
-    private void drawDebug() {
+    private void playing_Debug() {
 
         if (gp.chr[0] == null) return;
 

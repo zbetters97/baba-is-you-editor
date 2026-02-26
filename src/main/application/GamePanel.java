@@ -201,14 +201,6 @@ public class GamePanel extends JPanel implements Runnable {
             checkWin();
             handleKeyPress();
         }
-        else if (gameState == editState) {
-            if (keyH.startPressed) {
-                keyH.startPressed = false;
-                saveLoad.save(currentFileIndex);
-                gameState = playState;
-                setupLevel();
-            }
-        }
     }
 
     /**
@@ -438,7 +430,7 @@ public class GamePanel extends JPanel implements Runnable {
         win = false;
         stateHandler.clearData();
         lHandler.scanForRules();
-        ui.fetchEntity();
+        ui.editing_GetEntity();
     }
 
     public Entity[][] getAllEntities() {

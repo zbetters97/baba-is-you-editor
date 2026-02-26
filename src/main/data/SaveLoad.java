@@ -5,8 +5,11 @@ import entity.Entity;
 import entity.tile_interactive.IT_Wall;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 public record SaveLoad(GamePanel gp) {
 
@@ -138,5 +141,41 @@ public record SaveLoad(GamePanel gp) {
         } catch (Exception e) {
             System.out.println("LOAD ERROR: " + e.getMessage());
         }
+    }
+
+    public ArrayList<String> getSaveFiles() {
+
+        ArrayList<String> fileNames = new ArrayList<>();
+
+        try (var paths = Files.list(gp.saveDir.toPath())) {
+            fileNames = paths
+                    .map(p -> p.getFileName().toString())
+                    .filter(name -> name.startsWith("save_") && name.endsWith(".dat"))
+                    .collect(Collectors.toCollection(ArrayList::new));
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return fileNames;
+    }
+
+    public String getFileName(int saveSlot) {
+
+        try {
+            File saveFile = new File(gp.saveDir + "/save_" + saveSlot + ".dat");
+
+            if (saveFile.exists()) {
+                ObjectInputStream ois = new ObjectInputStream(new FileInputStream(saveFile));
+                DataStorage ds = (DataStorage) ois.readObject();
+
+                ois.close();
+                return ds.toString();
+            }
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        return null;
     }
 }
