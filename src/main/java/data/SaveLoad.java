@@ -15,6 +15,8 @@ public record SaveLoad(GamePanel gp) {
 
     public void save(String fileName) {
         try {
+            if (!gp.dbConnected) return;
+
             boolean overwrite = !fileName.isEmpty();
 
             // Create new save or overwrite existing one
@@ -108,6 +110,8 @@ public record SaveLoad(GamePanel gp) {
 
     public void load(String fileName) {
         try {
+            if (!gp.dbConnected) return;
+
             // Get save file from Firebase storage
             byte[] data = gp.db.downloadLevel(fileName);
             if (data == null) return;
@@ -159,6 +163,8 @@ public record SaveLoad(GamePanel gp) {
     }
 
     public void delete(String fileName) {
+        if (!gp.dbConnected) return;
+
         if (gp.db.deleteLevel(fileName)) {
             gp.saveFiles = gp.db.getSaveFileNames();
         }

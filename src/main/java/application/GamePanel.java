@@ -62,9 +62,12 @@ public class GamePanel extends JPanel implements Runnable {
     public final EntityGenerator eGenerator = new EntityGenerator(this);
     public final StateHandler stateHandler = new StateHandler(this);
 
-    public Firebase db = new Firebase();
+    public Firebase db = new Firebase(this);
+    public boolean dbConnected = false;
     public SaveLoad saveLoad = new SaveLoad(this);
     public Map<String, String> saveFiles = new LinkedHashMap<>();
+    public String account = "steelpro43";
+    public String levelPath = "levels/" + account + "/";
 
     /* ENTITIES */
     public Entity[] chr = new Entity[50];
@@ -97,14 +100,19 @@ public class GamePanel extends JPanel implements Runnable {
      * Prepares the game with default settings
      * Called by Driver
      */
-    protected void setupGame() throws Exception {
+    protected void setupGame()  {
 
         // Temp game window (before drawing to window)
         tempScreen = new BufferedImage(screenWidth, screenHeight, BufferedImage.TYPE_INT_ARGB);
         g2 = (Graphics2D) tempScreen.getGraphics();
 
-        db.init();
-        saveFiles = db.getSaveFileNames();
+        // Connect to Firebase
+        dbConnected = db.init();
+
+        // Retrieve save files from Firebase (K: file name, V: created date)
+        if (dbConnected){
+            saveFiles = db.getSaveFileNames();
+        }
 
         gameState = editState;
         setupLevel();

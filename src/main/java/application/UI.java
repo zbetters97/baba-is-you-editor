@@ -308,6 +308,7 @@ public class UI {
                     }
                 }
             }
+
             i++;
             textY += gp.tileSize;
         }
@@ -445,23 +446,24 @@ public class UI {
     }
 
     private void drawEditing_Map() {
-        editing_Map_HUD();
         editing_Map_Cursor();
+        editing_Map_HUD();
 
         editing_Map_Input_A();
         editing_Map_Input_B();
         editing_Map_Input_Dir();
     }
     private void editing_Map_HUD() {
-        drawCurrentEntity();
+        if (selectedEntity == null) {
+            drawCurrentEntity();
+        }
     }
     private void drawCurrentEntity() {
-
         UIEntity uiEntity = entityLibrary.get(entityListIndex).get(entityIndex);
-        int x = gp.screenWidth - gp.tileSize;
-        int y = 0;
 
-        g2.drawImage(uiEntity.getImage(), x, y, gp.tileSize, gp.tileSize, null);
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
+        g2.drawImage(uiEntity.getImage(), slotCol + 7, slotRow + 7, gp.tileSize - 14, gp.tileSize - 14, null);
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
     }
     private void editing_Map_Cursor() {
 
