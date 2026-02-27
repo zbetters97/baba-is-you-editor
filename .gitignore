@@ -3,6 +3,7 @@ out/
 !**/src/main/**/out/
 !**/src/test/**/out/
 .kotlin
+src/main/resources/db
 
 ### Eclipse ###
 .apt_generated
