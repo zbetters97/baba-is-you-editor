@@ -5,8 +5,6 @@ import java.awt.event.KeyListener;
 
 public class KeyHandler implements KeyListener {
 
-    private final GamePanel gp;
-
     /* GENERAL ATTRIBUTES */
     private boolean lock = true;
 
@@ -26,8 +24,7 @@ public class KeyHandler implements KeyListener {
     /**
      * CONSTRUCTOR
      */
-    public KeyHandler(GamePanel gp) {
-        this.gp = gp;
+    public KeyHandler() {
     }
 
     /**
