@@ -25,9 +25,11 @@ public record EntityGenerator(GamePanel gp) {
     }
 
     private Entity getCharacter(String cName) {
-        return cName.equals(CHR_Baba.chrName) ?
-            new CHR_Baba(gp, 0, 0)
-            : null;
+        return switch (cName) {
+            case CHR_Baba.chrName -> new CHR_Baba(gp, 0, 0);
+            case CHR_Keke.chrName -> new CHR_Keke(gp, 0,0);
+            default -> null;
+        };
     }
 
     private Entity getObject(String eName) {
@@ -53,6 +55,7 @@ public record EntityGenerator(GamePanel gp) {
             case WORD_Defeat.wordName -> new WORD_Defeat(gp, 0,0);
             case WORD_Flag.wordName -> new WORD_Flag(gp, 0,0);
             case WORD_Is.wordName -> new WORD_Is(gp, 0,0);
+            case WORD_Keke.wordName -> new WORD_Keke(gp, 0, 0);
             case WORD_Push.wordName -> new WORD_Push(gp, 0,0);
             case WORD_Rock.wordName -> new WORD_Rock(gp, 0,0);
             case WORD_Skull.wordName -> new WORD_Skull(gp, 0,0);

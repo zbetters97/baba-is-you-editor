@@ -55,8 +55,8 @@ public class UI {
         entityLibrary.addAll(Arrays.asList(
                 buildEntityLibraryList(
                         "words",
-                        "WORD_IS", "WORD_BABA", "WORD_FLAG", "WORD_ROCK",
-                        "WORD_SKULL", "WORD_WALL", "WORD_WATER"
+                        "WORD_IS", "WORD_BABA", "WORD_FLAG", "WORD_KEKE",
+                        "WORD_ROCK", "WORD_SKULL", "WORD_WALL", "WORD_WATER"
                 ),
                 buildEntityLibraryList(
                         "words",
@@ -70,7 +70,7 @@ public class UI {
                 ),
                 buildEntityLibraryList(
                         "characters",
-                        "BABA"
+                        "BABA", "KEKE"
                 )
         ));
     }

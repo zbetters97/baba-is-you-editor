@@ -2,6 +2,7 @@ package entity;
 
 import application.GamePanel;
 import entity.character.CHR_Baba;
+import entity.character.CHR_Keke;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -130,7 +131,7 @@ public class Entity {
             case RIGHT-> worldX += speed;
         }
 
-        if (this instanceof CHR_Baba) {
+        if (this instanceof CHR_Baba || this instanceof CHR_Keke) {
             cycleSprites();
         }
 
@@ -148,7 +149,7 @@ public class Entity {
         else if (previousWorldY > worldY) worldY += speed;
         else if (previousWorldY < worldY) worldY -= speed;
 
-        if (this instanceof CHR_Baba) {
+        if (this instanceof CHR_Baba || this instanceof CHR_Keke) {
             cycleSprites();
         }
 

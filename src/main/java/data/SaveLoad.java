@@ -52,8 +52,8 @@ public record SaveLoad(GamePanel gp) {
             ds.worldY[3] = new int[gp.chr.length];
 
             // Lists to store wall type values
-            ds.ori = new int[gp.iTiles.length];
-            ds.side = new int[gp.iTiles.length];
+            ds.ori = new int[4][gp.iTiles.length];
+            ds.side = new int[4][gp.iTiles.length];
 
             // Parse over each entity type
             Entity[][] entityLists = {gp.words, gp.iTiles, gp.obj, gp.chr};
@@ -70,8 +70,8 @@ public record SaveLoad(GamePanel gp) {
                         ds.names[type][i] = "NULL";
 
                         if (type == 1) {
-                            ds.ori[i] = -1;
-                            ds.side[i] = -1;
+                            ds.ori[type][i] = -1;
+                            ds.side[type][i] = -1;
                         }
 
                         continue;
@@ -84,11 +84,11 @@ public record SaveLoad(GamePanel gp) {
 
                     // Entity is a wall, save variance
                     if (type == 1 && e instanceof IT_Wall) {
-                        ds.ori[i] = e.ori;
-                        ds.side[i] = e.side;
+                        ds.ori[type][i] = e.ori;
+                        ds.side[type][i] = e.side;
                     } else {
-                        ds.ori[i] = -1;
-                        ds.side[i] = -1;
+                        ds.ori[type][i] = -1;
+                        ds.side[type][i] = -1;
                     }
                 }
             }
@@ -104,7 +104,7 @@ public record SaveLoad(GamePanel gp) {
             gp.saveFiles = gp.db.getSaveFileNames();
         }
         catch (Exception e) {
-            System.out.println("SAVE ERROR: " + e.getMessage());
+            System.out.println("Error saving level: " + e.getMessage());
         }
     }
 
@@ -130,6 +130,8 @@ public record SaveLoad(GamePanel gp) {
                 Entity[] entities = entityLists[type];
                 for (int i = 0; i < entities.length; i++) {
 
+                    entities[i] = null;
+
                     // Grab saved name from file
                     String name = ds.names[type][i];
 
@@ -143,7 +145,7 @@ public record SaveLoad(GamePanel gp) {
                     // ...otherwise, get normal entity
                     boolean isWall = type == 1 && name.equals(IT_Wall.iName);
                     Entity e = isWall ?
-                            gp.eGenerator.getWall(ds.ori[i], ds.side[i]) :
+                            gp.eGenerator.getWall(ds.ori[type][i], ds.side[type][i]) :
                             gp.eGenerator.getEntity(name);
 
                     e.worldX = ds.worldX[type][i];
@@ -158,7 +160,7 @@ public record SaveLoad(GamePanel gp) {
             ois.close();
         }
         catch (Exception e) {
-            System.out.println("LOAD ERROR: " + e.getMessage());
+            System.out.println("Error loading level: " + e.getMessage());
         }
     }
 

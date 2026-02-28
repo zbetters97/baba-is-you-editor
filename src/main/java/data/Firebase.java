@@ -40,7 +40,7 @@ public record Firebase(GamePanel gp) {
             return true;
         }
         catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.out.println("Error connecting to Firebase: " + e.getMessage());
             return false;
         }
     }
@@ -61,7 +61,7 @@ public record Firebase(GamePanel gp) {
             Files.delete(tempFile);
         }
         catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.out.println("Error uploading file: " + e.getMessage());
         }
     }
 
@@ -73,14 +73,14 @@ public record Firebase(GamePanel gp) {
             // Attempt to open the file
             Blob file = bucket.get(gp.levelPath + fileName);
             if (file == null) {
-                throw new IllegalStateException("LOAD ERROR: File not found in Firebase Storage");
+                throw new IllegalStateException("File not found in Firebase Storage");
             }
 
             // Return file contents
             return file.getContent();
         }
         catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.out.println("Error downloading level: " + e.getMessage());
             return null;
         }
     }
@@ -93,13 +93,13 @@ public record Firebase(GamePanel gp) {
             // Attempt to open the file
             Blob file = bucket.get(gp.levelPath + fileName);
             if (file == null) {
-                throw new IllegalStateException("LOAD ERROR: File not found in Firebase Storage");
+                throw new IllegalStateException("File not found in Firebase Storage");
             }
 
             // Attempt to delete the file from Storage
             return file.delete();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.out.println("Error deleting level: " + e.getMessage());
             return false;
         }
     }
@@ -150,7 +150,7 @@ public record Firebase(GamePanel gp) {
 
             return fileNames;
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.out.println("Error getting saved levels: " + e.getMessage());
             return null;
         }
     }

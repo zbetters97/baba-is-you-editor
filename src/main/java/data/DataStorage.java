@@ -1,8 +1,12 @@
 package data;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 public class DataStorage implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     // FILE INFO
     String file_date;
@@ -10,7 +14,7 @@ public class DataStorage implements Serializable {
     // ENTITY DATA ARRAYS
     String[][] names;
     int[][] worldX, worldY;
-    int[] ori, side;
+    int[][] ori, side;
 
     public String toString() {
         return file_date;
