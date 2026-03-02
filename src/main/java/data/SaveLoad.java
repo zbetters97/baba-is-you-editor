@@ -28,7 +28,10 @@ public record SaveLoad(GamePanel gp) {
             // Save data to DS object
             DataStorage ds = new DataStorage();
 
-            SimpleDateFormat sdf = new SimpleDateFormat("MMM d, yyyy - hh:mm:ss a (z)");
+            ds.level_name = gp.ui.lvlName;
+            gp.ui.lvlName = "";
+
+            SimpleDateFormat sdf = new SimpleDateFormat("MMM d, yyyy");
             sdf.setTimeZone(TimeZone.getTimeZone("America/New_York"));
             ds.file_date = sdf.format(new Date(System.currentTimeMillis()));
 

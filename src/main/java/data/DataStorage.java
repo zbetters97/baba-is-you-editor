@@ -9,6 +9,7 @@ public class DataStorage implements Serializable {
     private static final long serialVersionUID = 1L;
 
     // FILE INFO
+    String level_name;
     String file_date;
 
     // ENTITY DATA ARRAYS
@@ -17,6 +18,6 @@ public class DataStorage implements Serializable {
     int[][] ori, side;
 
     public String toString() {
-        return file_date;
+        return level_name + " [" + file_date + "]";
     }
 }

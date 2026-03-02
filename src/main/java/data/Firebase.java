@@ -139,13 +139,13 @@ public record Firebase(GamePanel gp) {
                 DataStorage ds = (DataStorage) ois.readObject();
 
                 // Retrieve stored file_date value
-                String date = ds.file_date;
+                String name = ds.toString();
 
                 // Format file name
                 String fileName = file.getName().replace(gp.levelPath, "");
 
-                // Add to Map (K: file ID, V: created date)
-                fileNames.put(fileName, date);
+                // Add to Map (K: file ID, V: level name)
+                fileNames.put(fileName, name);
             }
 
             return fileNames;
