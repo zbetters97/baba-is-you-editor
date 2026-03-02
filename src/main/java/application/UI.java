@@ -89,7 +89,6 @@ public class UI {
         ArrayList<UIEntity> i_tiles = new ArrayList<>();
 
         i_tiles.add(new UIEntity("WALL", 0, 0, "i_tiles", gp));
-
         for (int i = 1; i < 3; i++) {
             for (int c = 0; c < 3; c++) {
                 i_tiles.add(new UIEntity("WALL", i, c, "i_tiles", gp));
@@ -103,6 +102,17 @@ public class UI {
         }
 
         i_tiles.add(new UIEntity("WATER", "i_tiles", gp));
+        for (int i = 1; i < 3; i++) {
+            for (int c = 0; c < 3; c++) {
+                i_tiles.add(new UIEntity("WATER", i, c, "i_tiles", gp));
+            }
+        }
+        for (int i = 0; i < 4; i++) {
+            i_tiles.add(new UIEntity("WATER", 3, i, "i_tiles", gp));
+        }
+        for (int i = 0; i < 4; i++) {
+            i_tiles.add(new UIEntity("WATER", 4, i, "i_tiles", gp));
+        }
 
         return i_tiles;
     }
@@ -194,8 +204,8 @@ public class UI {
         int textX = frameX + gp.tileSize * 2;
         int textY = frameY + (gp.tileSize * 2 + 10);
 
-        // PLAY
-        g2.drawString("Play Level", textX, textY);
+        // NEW
+        g2.drawString("New", textX, textY);
         if (commandNum == 0) {
             g2.drawString(">", textX - 25, textY);
             if (gp.keyH.aPressed) {
@@ -203,6 +213,21 @@ public class UI {
 
                 commandNum = 0;
                 subState = 0;
+                gp.saveLoad.resetData();
+            }
+        }
+
+        // PLAY
+        textY += gp.tileSize;
+        g2.drawString("Play", textX, textY);
+        if (commandNum == 1) {
+            g2.drawString(">", textX - 25, textY);
+            if (gp.keyH.aPressed) {
+                gp.keyH.aPressed = false;
+
+                commandNum = 0;
+                subState = 0;
+                gp.saveLoad.saveToData("temp");
                 gp.gameState = gp.playState;
                 gp.setupLevel();
             }
@@ -210,8 +235,8 @@ public class UI {
 
         // SAVE
         textY += gp.tileSize;
-        g2.drawString("Save Level", textX, textY);
-        if (commandNum == 1) {
+        g2.drawString("Save", textX, textY);
+        if (commandNum == 2) {
             g2.drawString(">", textX - 25, textY);
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
@@ -223,8 +248,8 @@ public class UI {
 
         // LOAD
         textY += gp.tileSize;
-        g2.drawString("Load Level", textX, textY);
-        if (commandNum == 2) {
+        g2.drawString("Load", textX, textY);
+        if (commandNum == 3) {
             g2.drawString(">", textX - 25, textY);
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
@@ -238,8 +263,8 @@ public class UI {
 
         // DELETE
         textY += gp.tileSize;
-        g2.drawString("Delete Level", textX, textY);
-        if (commandNum == 3) {
+        g2.drawString("Delete", textX, textY);
+        if (commandNum == 4) {
             g2.drawString(">", textX - 25, textY);
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
@@ -270,8 +295,8 @@ public class UI {
             gp.keyH.downPressed = false;
 
             commandNum++;
-            if (commandNum > 3) {
-                commandNum = 3;
+            if (commandNum > 4) {
+                commandNum = 4;
             }
         }
     }
@@ -304,7 +329,7 @@ public class UI {
                     subState = 0;
 
                     if (isSaving) {
-                        gp.saveLoad.save(entry.getKey());
+                        gp.saveLoad.save(entry.getValue(), entry.getKey());
                     }
                     else if (isLoading) {
                         gp.saveLoad.load(entry.getKey());
@@ -507,7 +532,7 @@ public class UI {
             }
             // ENTER BUTTON
             else if (commandNum == keyboardLetters.length() + 3 && lvlName.length() > 2 && lvlName.length() <= MAX_LVL_NAME) {
-                gp.saveLoad.save("");
+                gp.saveLoad.save(lvlName, "");
                 commandNum = 0;
                 subState = 1;
             }
@@ -604,9 +629,11 @@ public class UI {
     public void editing_GetEntity() {
         UIEntity uiEntity = entityLibrary.get(entityListIndex).get(entityIndex);
 
-        currentEntity = uiEntity.isWall() ?
-                gp.eGenerator.getWall(uiEntity.getOri(), uiEntity.getSide()) :
+        currentEntity = uiEntity.getOri() > -1 ?
+                gp.eGenerator.getITile(uiEntity.getName(), uiEntity.getOri(), uiEntity.getSide()) :
                 gp.eGenerator.getEntity(uiEntity.getName());
+
+        if (currentEntity == null) return;
 
         currentEntity.worldX = slotCol;
         currentEntity.worldY = slotRow;

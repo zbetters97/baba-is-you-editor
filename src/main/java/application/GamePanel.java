@@ -1,9 +1,6 @@
 package application;
 
-import data.EntityGenerator;
-import data.Firebase;
-import data.SaveLoad;
-import data.StateHandler;
+import data.*;
 import entity.Entity;
 
 import javax.swing.*;
@@ -65,6 +62,7 @@ public class GamePanel extends JPanel implements Runnable {
     public Firebase db = new Firebase(this);
     public boolean dbConnected = false;
     public SaveLoad saveLoad = new SaveLoad(this);
+    public DataStorage levelProgress = new DataStorage();
     public Map<String, String> saveFiles = new LinkedHashMap<>();
     public String account = "steelpro43";
     public String levelPath = "levels/" + account + "/";
@@ -367,6 +365,7 @@ public class GamePanel extends JPanel implements Runnable {
         }
         else if (keyH.startPressed) {
             keyH.startPressed = false;
+            saveLoad.loadFromData();
             showGrid = true;
             gameState = editState;
         }

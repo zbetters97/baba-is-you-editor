@@ -3,33 +3,33 @@ package data;
 import application.GamePanel;
 import entity.Entity;
 import entity.tile_interactive.IT_Wall;
+import entity.tile_interactive.IT_Water;
 
 import java.io.*;
 import java.nio.file.Path;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.TimeZone;
 import java.util.UUID;
 
 public record SaveLoad(GamePanel gp) {
 
-    public void save(String fileName) {
+    public void resetData() {
+        for (Entity[] entities : new Entity[][]{gp.words, gp.iTiles, gp.obj, gp.chr}) {
+            Arrays.fill(entities, null);
+        }
+    }
+
+    public void save(String levelName, String fileName) {
+        saveToData(levelName);
+        saveToFile(fileName);
+    }
+    public void saveToData(String levelName) {
         try {
-            if (!gp.dbConnected) return;
-
-            boolean overwrite = !fileName.isEmpty();
-
-            // Create new save or overwrite existing one
-            String fileID = overwrite ? fileName : UUID.randomUUID() + ".dat";
-
-            Path tempFile = Path.of(fileID);
-            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(tempFile.toFile()));
-
-            // Save data to DS object
             DataStorage ds = new DataStorage();
 
-            ds.level_name = gp.ui.lvlName;
-            gp.ui.lvlName = "";
+            ds.level_name = levelName;
 
             SimpleDateFormat sdf = new SimpleDateFormat("MMM d, yyyy");
             sdf.setTimeZone(TimeZone.getTimeZone("America/New_York"));
@@ -54,9 +54,11 @@ public record SaveLoad(GamePanel gp) {
             ds.worldY[2] = new int[gp.obj.length];
             ds.worldY[3] = new int[gp.chr.length];
 
-            // Lists to store wall type values
-            ds.ori = new int[4][gp.iTiles.length];
-            ds.side = new int[4][gp.iTiles.length];
+            // Lists to store wall/water type values
+            ds.wall_ori = new int[4][gp.iTiles.length];
+            ds.wall_side = new int[4][gp.iTiles.length];
+            ds.water_ori = new int[4][gp.iTiles.length];
+            ds.water_side = new int[4][gp.iTiles.length];
 
             // Parse over each entity type
             Entity[][] entityLists = {gp.words, gp.iTiles, gp.obj, gp.chr};
@@ -73,8 +75,8 @@ public record SaveLoad(GamePanel gp) {
                         ds.names[type][i] = "NULL";
 
                         if (type == 1) {
-                            ds.ori[type][i] = -1;
-                            ds.side[type][i] = -1;
+                            ds.wall_ori[type][i] = -1;
+                            ds.wall_side[type][i] = -1;
                         }
 
                         continue;
@@ -87,17 +89,36 @@ public record SaveLoad(GamePanel gp) {
 
                     // Entity is a wall, save variance
                     if (type == 1 && e instanceof IT_Wall) {
-                        ds.ori[type][i] = e.ori;
-                        ds.side[type][i] = e.side;
+                        ds.wall_ori[type][i] = e.ori;
+                        ds.wall_side[type][i] = e.side;
+                    } else if (type == 1 && e instanceof IT_Water) {
+                        ds.water_ori[type][i] = e.ori;
+                        ds.water_side[type][i] = e.side;
                     } else {
-                        ds.ori[type][i] = -1;
-                        ds.side[type][i] = -1;
+                        ds.wall_ori[type][i] = -1;
+                        ds.wall_side[type][i] = -1;
                     }
                 }
             }
 
+            gp.levelProgress = ds;
+        }
+        catch (Exception e) {
+            System.out.println("Error saving level: " + e.getMessage());
+        }
+    }
+    private void saveToFile(String fileName) {
+        try {
+            if (!gp.dbConnected || gp.levelProgress == null) return;
+
+            // Create new save or overwrite existing one
+            String fileID = fileName.isEmpty() ? UUID.randomUUID() + ".dat" : fileName;
+
+            Path tempFile = Path.of(fileID);
+            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(tempFile.toFile()));
+
             // Write to the DS object
-            oos.writeObject(ds);
+            oos.writeObject(gp.levelProgress);
             oos.close();
 
             // Upload to Firebase storage
@@ -112,6 +133,10 @@ public record SaveLoad(GamePanel gp) {
     }
 
     public void load(String fileName) {
+        loadFile(fileName);
+        loadFromData();
+    }
+    private void loadFile(String fileName) {
         try {
             if (!gp.dbConnected) return;
 
@@ -123,7 +148,19 @@ public record SaveLoad(GamePanel gp) {
             ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(data));
 
             // Load data to the DS object
-            DataStorage ds = (DataStorage) ois.readObject();
+            gp.levelProgress = (DataStorage) ois.readObject();
+
+            // Close file
+            ois.close();
+        }
+        catch (Exception e) {
+            System.out.println("Error loading level: " + e.getMessage());
+        }
+    }
+    public void loadFromData() {
+        try {
+            // Load data to the DS object
+            DataStorage ds = gp.levelProgress;
 
             // Parse over each entity type
             Entity[][] entityLists = {gp.words, gp.iTiles, gp.obj, gp.chr};
@@ -144,12 +181,14 @@ public record SaveLoad(GamePanel gp) {
                         continue;
                     }
 
-                    // Saved entity is a wall, get Wall entity...
-                    // ...otherwise, get normal entity
-                    boolean isWall = type == 1 && name.equals(IT_Wall.iName);
-                    Entity e = isWall ?
-                            gp.eGenerator.getWall(ds.ori[type][i], ds.side[type][i]) :
-                            gp.eGenerator.getEntity(name);
+                    // Get wall/water type if Wall/Water
+                    Entity e = name.equals(IT_Wall.iName) ?
+                            gp.eGenerator.getITile(name, ds.wall_ori[type][i], ds.wall_side[type][i]) :
+                            name.equals(IT_Water.iName) ?
+                                    gp.eGenerator.getITile(name, ds.water_ori[type][i], ds.water_side[type][i]) :
+                                    gp.eGenerator.getEntity(name);
+
+                    if (e == null) continue;
 
                     e.worldX = ds.worldX[type][i];
                     e.worldY = ds.worldY[type][i];
@@ -158,9 +197,6 @@ public record SaveLoad(GamePanel gp) {
                     entities[i] = e;
                 }
             }
-
-            // Close file
-            ois.close();
         }
         catch (Exception e) {
             System.out.println("Error loading level: " + e.getMessage());

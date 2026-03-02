@@ -10,10 +10,6 @@ import entity.word.*;
 
 public record EntityGenerator(GamePanel gp) {
 
-    public Entity getWall(int ori, int side) {
-        return new IT_Wall(gp, 0, 0, ori, side);
-    }
-
     public Entity getEntity(String eName) {
         return getCharacter(eName) != null
                 ? getCharacter(eName)
@@ -44,7 +40,15 @@ public record EntityGenerator(GamePanel gp) {
     private Entity getITile(String eName) {
         return switch (eName) {
             case IT_Wall.iName -> new IT_Wall(gp, 0, 0, 0, 0);
-            case IT_Water.iName -> new IT_Water(gp, 0,0);
+            case IT_Water.iName -> new IT_Water(gp, 0,0, 0, 0);
+            default -> null;
+        };
+    }
+
+    public Entity getITile(String eName, int ori, int side) {
+        return switch (eName) {
+            case IT_Wall.iName -> new IT_Wall(gp, 0, 0, ori, side);
+            case IT_Water.iName -> new IT_Water(gp, 0,0, ori, side);
             default -> null;
         };
     }

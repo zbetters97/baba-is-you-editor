@@ -10,13 +10,14 @@ import java.util.Objects;
 public class UIEntity {
 
     private final String name;
-    private boolean isWall = false;
-    private int ori;
-    private int side;
+    private final int ori;
+    private final int side;
     private BufferedImage image;
 
     public UIEntity(String name, String path, GamePanel gp) {
         this.name = name;
+        ori = -1;
+        side = -1;
         setupImage("/" + path + "/" + name.toLowerCase(), gp);
     }
 
@@ -24,7 +25,6 @@ public class UIEntity {
         this.name = name;
         this.ori = ori;
         this.side = side;
-        isWall = true;
         setupImage("/" + path + "/" + name + "_" + ori + "_" + side, gp);
     }
 
@@ -47,9 +47,6 @@ public class UIEntity {
 
     public String getName() {
         return name;
-    }
-    public boolean isWall() {
-        return isWall;
     }
     public int getOri() {
         return ori;
