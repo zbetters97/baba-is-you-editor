@@ -350,7 +350,7 @@ public class GamePanel extends JPanel implements Runnable {
      * Called by update()
      */
     private void checkWin() {
-        for (Entity[] entities : getAllRegularEntities()) {
+        for (Entity[] entities : getAllEntities()) {
             for (Entity e : entities) {
                 if (e == null) continue;
                 e.checkWin(e);
@@ -431,9 +431,6 @@ public class GamePanel extends JPanel implements Runnable {
 
     public Entity[][] getAllEntities() {
         return new Entity[][]{iTiles, obj, chr, words};
-    }
-    public Entity[][] getAllRegularEntities() {
-        return new Entity[][] { iTiles, obj, chr };
     }
 
     public Entity[] getEntityList(int index) {

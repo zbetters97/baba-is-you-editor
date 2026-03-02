@@ -10,13 +10,13 @@ import entity.word.*;
 
 public record EntityGenerator(GamePanel gp) {
 
-    public Entity getEntity(String eName) {
+    public Entity getEntity(String eName, int ori, int side) {
         return getCharacter(eName) != null
                 ? getCharacter(eName)
                 : getObject(eName) != null
                     ? getObject(eName)
-                    : getITile(eName) != null
-                        ? getITile(eName)
+                    : getITile(eName, ori, side) != null
+                        ? getITile(eName, ori, side)
                         : getWord(eName);
     }
 
@@ -37,14 +37,6 @@ public record EntityGenerator(GamePanel gp) {
         };
     }
 
-    private Entity getITile(String eName) {
-        return switch (eName) {
-            case IT_Wall.iName -> new IT_Wall(gp, 0, 0, 0, 0);
-            case IT_Water.iName -> new IT_Water(gp, 0,0, 0, 0);
-            default -> null;
-        };
-    }
-
     public Entity getITile(String eName, int ori, int side) {
         return switch (eName) {
             case IT_Wall.iName -> new IT_Wall(gp, 0, 0, ori, side);
@@ -58,6 +50,7 @@ public record EntityGenerator(GamePanel gp) {
             case WORD_Baba.wordName -> new WORD_Baba(gp, 0, 0);
             case WORD_Defeat.wordName -> new WORD_Defeat(gp, 0,0);
             case WORD_Flag.wordName -> new WORD_Flag(gp, 0,0);
+            case WORD_Float.wordName -> new WORD_Float(gp, 0,0);
             case WORD_Is.wordName -> new WORD_Is(gp, 0,0);
             case WORD_Keke.wordName -> new WORD_Keke(gp, 0, 0);
             case WORD_Push.wordName -> new WORD_Push(gp, 0,0);
@@ -65,6 +58,7 @@ public record EntityGenerator(GamePanel gp) {
             case WORD_Skull.wordName -> new WORD_Skull(gp, 0,0);
             case WORD_Sink.wordName -> new WORD_Sink(gp, 0,0);
             case WORD_Stop.wordName -> new WORD_Stop(gp, 0,0);
+            case WORD_Text.wordName -> new WORD_Text(gp, 0,0);
             case WORD_Wall.wordName -> new WORD_Wall(gp, 0,0);
             case WORD_Water.wordName -> new WORD_Water(gp, 0,0);
             case WORD_Win.wordName -> new WORD_Win(gp, 0,0);

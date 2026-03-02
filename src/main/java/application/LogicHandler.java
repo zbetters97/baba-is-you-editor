@@ -1,6 +1,8 @@
 package application;
 
 import entity.Entity;
+import entity.Entity.Property;
+import entity.WordEntity;
 import entity.word.*;
 
 import java.util.Arrays;
@@ -11,12 +13,13 @@ public record LogicHandler(GamePanel gp) {
 
     // Words mapped to a property
     private static final Map<String, Entity.Property> PROPERTY_MAP = Map.of(
-            WORD_Win.wordName, Entity.Property.WIN,
-            WORD_Stop.wordName, Entity.Property.STOP,
-            WORD_Push.wordName, Entity.Property.PUSH,
-            WORD_You.wordName, Entity.Property.YOU,
-            WORD_Sink.wordName, Entity.Property.SINK,
-            WORD_Defeat.wordName, Entity.Property.DEFEAT
+            WORD_Defeat.wordName, Property.DEFEAT,
+            WORD_Float.wordName, Property.FLOAT,
+            WORD_Push.wordName, Property.PUSH,
+            WORD_Sink.wordName, Property.SINK,
+            WORD_Stop.wordName, Property.STOP,
+            WORD_You.wordName, Property.YOU,
+            WORD_Win.wordName, Property.WIN
     );
 
     /**
@@ -37,7 +40,7 @@ public record LogicHandler(GamePanel gp) {
      * Called by update();
      */
     private void clearProperties() {
-        for (Entity[] entities : gp.getAllRegularEntities()) {
+        for (Entity[] entities : gp.getAllEntities()) {
             for (Entity e : entities) {
                 if (e == null) continue;
 
@@ -141,7 +144,7 @@ public record LogicHandler(GamePanel gp) {
                 continue;
             }
 
-            Entity newForm = gp.eGenerator.getEntity(predicate.replace("WORD_", ""));
+            Entity newForm = gp.eGenerator.getEntity(predicate.replace("WORD_", ""), 0, 0);
             if (newForm != null) {
                 applyTransformationRule(subject, newForm);
             }
@@ -157,13 +160,12 @@ public record LogicHandler(GamePanel gp) {
      * @param property The property the object will be receiving
      */
     private void applyPropertyRule(String entityName, Entity.Property property) {
-
-        for (Entity[] entities : gp.getAllRegularEntities()) {
+        for (Entity[] entities : gp.getAllEntities()) {
             for (Entity e : entities) {
                 if (e == null) continue;
 
-                // If entity's name (current or base form) matches passed name, provide property
-                if (e.name.equals(entityName)) {
+                // If entity's name matches passed name, provide property
+                if (e.name.equals(entityName) || entityName.equals("TEXT") && e instanceof WordEntity) {
                     e.properties.add(property);
                 }
             }
@@ -178,7 +180,7 @@ public record LogicHandler(GamePanel gp) {
      * @param newForm The new entity to form into
      */
     private void applyTransformationRule(String oldEntityName, Entity newForm) {
-        for (Entity[] entities : gp.getAllRegularEntities()) {
+        for (Entity[] entities : gp.getAllEntities()) {
             for (Entity e : entities) {
                 if (e == null) continue;
 

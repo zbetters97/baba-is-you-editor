@@ -58,11 +58,11 @@ public class UI {
                 buildEntityLibraryList(
                         "words",
                         "WORD_IS", "WORD_BABA", "WORD_FLAG", "WORD_KEKE",
-                        "WORD_ROCK", "WORD_SKULL", "WORD_WALL", "WORD_WATER"
+                        "WORD_ROCK", "WORD_SKULL", "WORD_TEXT", "WORD_WALL", "WORD_WATER"
                 ),
                 buildEntityLibraryList(
                         "words",
-                        "WORD_DEFEAT", "WORD_PUSH", "WORD_SINK",
+                        "WORD_DEFEAT", "WORD_FLOAT", "WORD_PUSH", "WORD_SINK",
                         "WORD_STOP", "WORD_WIN", "WORD_YOU"
                 ),
                 buildITilesLibraryList(),
@@ -629,10 +629,7 @@ public class UI {
     public void editing_GetEntity() {
         UIEntity uiEntity = entityLibrary.get(entityListIndex).get(entityIndex);
 
-        currentEntity = uiEntity.getOri() > -1 ?
-                gp.eGenerator.getITile(uiEntity.getName(), uiEntity.getOri(), uiEntity.getSide()) :
-                gp.eGenerator.getEntity(uiEntity.getName());
-
+        currentEntity =  gp.eGenerator.getEntity(uiEntity.getName(), uiEntity.getOri(), uiEntity.getSide());
         if (currentEntity == null) return;
 
         currentEntity.worldX = slotCol;

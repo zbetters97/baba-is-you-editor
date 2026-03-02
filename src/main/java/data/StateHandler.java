@@ -64,7 +64,10 @@ public class StateHandler {
                     entities[i].name,
                     entities[i].worldX,
                     entities[i].worldY,
-                    entities[i].direction
+                    entities[i].direction,
+                    entities[i].ori,
+                    entities[i].side
+
             );
         }
 
@@ -114,13 +117,13 @@ public class StateHandler {
             if (entities[i] == null) {
 
                 // Resurrect entity using saved state
-                entities[i] = gp.eGenerator.getEntity(saved[i].name);
+                entities[i] = gp.eGenerator.getEntity(saved[i].name, saved[i].ori, saved[i].side);
                 entities[i].alive = true;
                 revived = true;
             }
             // Entity changed since redo
             else if (!entities[i].name.equals(saved[i].name)) {
-                entities[i].setForm(gp.eGenerator.getEntity(saved[i].name));
+                entities[i].setForm(gp.eGenerator.getEntity(saved[i].name, saved[i].ori, saved[i].side));
             }
 
             if (entities[i] == null) continue;

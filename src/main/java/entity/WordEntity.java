@@ -13,7 +13,6 @@ public abstract class WordEntity extends Entity {
         worldY = row * gp.tileSize;
 
         collisionOn = false;
-        properties.add(Property.PUSH);
 
         image = up1 = down1 = left1 = right1 = setupImage("/words/" + name.toLowerCase());
     }

@@ -19,12 +19,13 @@ public class Entity {
 
     // Properties an object can have
     public enum Property {
-        WIN,
-        STOP,
-        PUSH,
-        YOU,
         DEFEAT,
+        FLOAT,
+        PUSH,
         SINK,
+        STOP,
+        WIN,
+        YOU,
     }
 
     // Empty enum list to hold properties
@@ -216,7 +217,7 @@ public class Entity {
             }
 
             // Entity has PUSH, attempt to move
-            if (e.properties.contains(Property.PUSH)) {
+            if (e.properties.contains(Property.PUSH) || e instanceof WordEntity) {
 
                 // Can't move
                 if (!canMove(e, dir, moveSet)) {
@@ -252,7 +253,7 @@ public class Entity {
      * Called by checkEntities()
      */
     private void checkSink(Entity obj) {
-        if (obj.properties.contains(Property.SINK) && !obj.properties.contains(Property.STOP)) {
+        if (!properties.contains(Property.FLOAT) && (obj.properties.contains(Property.SINK) && !obj.properties.contains(Property.STOP))) {
             alive = false;
             resetMovement();
 

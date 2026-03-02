@@ -184,9 +184,7 @@ public record SaveLoad(GamePanel gp) {
                     // Get wall/water type if Wall/Water
                     Entity e = name.equals(IT_Wall.iName) ?
                             gp.eGenerator.getITile(name, ds.wall_ori[type][i], ds.wall_side[type][i]) :
-                            name.equals(IT_Water.iName) ?
-                                    gp.eGenerator.getITile(name, ds.water_ori[type][i], ds.water_side[type][i]) :
-                                    gp.eGenerator.getEntity(name);
+                            gp.eGenerator.getEntity(name, ds.water_ori[type][i], ds.water_side[type][i]);
 
                     if (e == null) continue;
 
