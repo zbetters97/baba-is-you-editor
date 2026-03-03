@@ -8,7 +8,6 @@ import entity.word.*;
 import java.util.Arrays;
 import java.util.Map;
 
-
 public record LogicHandler(GamePanel gp) {
 
     // Words mapped to a property
@@ -188,7 +187,7 @@ public record LogicHandler(GamePanel gp) {
 
                 // If entity's name matches passed name, transform to new entity
                 if (e.name.equals(oldEntityName)) {
-                    e.setForm(newForm);
+                    e.transform(newForm);
                 }
             }
         }

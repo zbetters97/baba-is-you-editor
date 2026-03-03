@@ -2,6 +2,7 @@ package data;
 
 import application.GamePanel;
 import entity.Entity;
+import entity.ITileEntity;
 import entity.tile_interactive.IT_Wall;
 import entity.tile_interactive.IT_Water;
 
@@ -89,13 +90,17 @@ public record SaveLoad(GamePanel gp) {
                     ds.worldY[type][i] = e.worldY;
 
                     // Entity is a wall, save variance
-                    if (type == 1 && e instanceof IT_Wall) {
-                        ds.wall_ori[type][i] = e.ori;
-                        ds.wall_side[type][i] = e.side;
-                    } else if (type == 1 && e instanceof IT_Water) {
-                        ds.water_ori[type][i] = e.ori;
-                        ds.water_side[type][i] = e.side;
-                    } else {
+                    if (e instanceof ITileEntity) {
+                        if (e instanceof IT_Wall) {
+                            ds.wall_ori[type][i] = e.ori;
+                            ds.wall_side[type][i] = e.side;
+                        }
+                        else if (e instanceof IT_Water) {
+                            ds.water_ori[type][i] = e.ori;
+                            ds.water_side[type][i] = e.side;
+                        }
+                    }
+                    else {
                         ds.wall_ori[type][i] = -1;
                         ds.wall_side[type][i] = -1;
                     }

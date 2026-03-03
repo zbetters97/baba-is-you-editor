@@ -126,31 +126,10 @@ public class UI {
     public void draw(Graphics2D g2) {
         this.g2 = g2;
 
-        drawGrid();
-
         if (gp.gameState == gp.editState) {
             drawEditState();
-        }
-        else if (gp.gameState == gp.playState) {
+        } else if (gp.gameState == gp.playState) {
             drawPlayState();
-        }
-    }
-
-    private void drawGrid() {
-        // Semi-transparent white
-        g2.setColor(new Color(255, 255, 255, 50));
-        g2.setStroke(new BasicStroke(1));
-
-        // Vertical lines
-        for (int col = 0; col <= gp.maxWorldCol; col++) {
-            int x = col * gp.tileSize;
-            g2.drawLine(x, 0, x, gp.maxWorldRow * gp.tileSize);
-        }
-
-        // Horizontal lines
-        for (int row = 0; row <= gp.maxWorldRow; row++) {
-            int y = row * gp.tileSize;
-            g2.drawLine(0, y, gp.maxWorldCol * gp.tileSize, y);
         }
     }
 
@@ -756,20 +735,10 @@ public class UI {
         playing_HUD();
     }
 
-    /**
-     * DRAW HUD
-     * Draws the HUD during play state
-     * called by draw()
-     */
     private void playing_HUD() {
         playing_Debug();
     }
 
-    /**
-     * DRAW DEBUG
-     * UI for debug information
-     * Called by drawHUD()
-     */
     private void playing_Debug() {
 
         if (gp.chr[0] == null) return;

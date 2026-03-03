@@ -198,7 +198,6 @@ public class GamePanel extends JPanel implements Runnable {
             handleMovementInput();
             checkRedo();
             checkRules();
-            checkWin();
             handleKeyPress();
         }
     }
@@ -310,7 +309,7 @@ public class GamePanel extends JPanel implements Runnable {
 
         // Start move for each entity that can move
         for (Entity m : moveSet) {
-            m.startMove(direction);
+            m.move(direction);
         }
     }
 
@@ -343,21 +342,6 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
 
-    /**
-     * CHECK WIN
-     * Checks if any entity has YOU and WIN,
-     *  sets up the next level if found
-     * Called by update()
-     */
-    private void checkWin() {
-        for (Entity[] entities : getAllEntities()) {
-            for (Entity e : entities) {
-                if (e == null) continue;
-                e.checkWin(e);
-            }
-        }
-    }
-
     private void handleKeyPress() {
         if (keyH.yPressed) {
             keyH.yPressed = false;
@@ -378,6 +362,7 @@ public class GamePanel extends JPanel implements Runnable {
      */
     private void drawToTempScreen() {
         clearBackBuffer();
+        drawGrid();
         drawEntities();
         ui.draw(g2);
     }
@@ -390,6 +375,24 @@ public class GamePanel extends JPanel implements Runnable {
     private void clearBackBuffer() {
         g2.setColor(Color.BLACK);
         g2.fillRect(0, 0, screenWidth, screenHeight);
+    }
+
+    private void drawGrid() {
+        // Semi-transparent white
+        g2.setColor(new Color(255, 255, 255, 50));
+        g2.setStroke(new BasicStroke(1));
+
+        // Vertical lines
+        for (int col = 0; col <= maxWorldCol; col++) {
+            int x = col * tileSize;
+            g2.drawLine(x, 0, x, maxWorldRow * tileSize);
+        }
+
+        // Horizontal lines
+        for (int row = 0; row <= maxWorldRow; row++) {
+            int y = row * tileSize;
+            g2.drawLine(0, y, maxWorldCol * tileSize, y);
+        }
     }
 
     /**

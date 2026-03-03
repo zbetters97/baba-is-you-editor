@@ -1,20 +1,13 @@
 package entity.object;
 
 import application.GamePanel;
-import entity.Entity;
+import entity.ObjectEntity;
 
-public class OBJ_Flag extends Entity {
+public class OBJ_Flag extends ObjectEntity {
 
     public static final String objName = "FLAG";
 
-    public OBJ_Flag(GamePanel gp, int x, int y) {
-        super(gp);
-
-        name = objName;
-
-        worldX = x * gp.tileSize;
-        worldY = y * gp.tileSize;
-
-        image = up1 = down1 = left1 = right1 = setupImage("/objects/" + objName.toLowerCase());
+    public OBJ_Flag(GamePanel gp, int col, int row) {
+        super(gp, col, row, objName);
     }
 }

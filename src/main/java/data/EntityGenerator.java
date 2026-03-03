@@ -14,10 +14,10 @@ public record EntityGenerator(GamePanel gp) {
         return getCharacter(eName) != null
                 ? getCharacter(eName)
                 : getObject(eName) != null
-                    ? getObject(eName)
-                    : getITile(eName, ori, side) != null
-                        ? getITile(eName, ori, side)
-                        : getWord(eName);
+                ? getObject(eName) :
+                getITile(eName, ori, side) != null ?
+                getITile(eName, ori, side)
+                : getWord(eName);
     }
 
     private Entity getCharacter(String cName) {

@@ -123,7 +123,7 @@ public class StateHandler {
             }
             // Entity changed since redo
             else if (!entities[i].name.equals(saved[i].name)) {
-                entities[i].setForm(gp.eGenerator.getEntity(saved[i].name, saved[i].ori, saved[i].side));
+                entities[i].transform(gp.eGenerator.getEntity(saved[i].name, saved[i].ori, saved[i].side));
             }
 
             if (entities[i] == null) continue;

@@ -1,8 +1,7 @@
 package entity;
 
 import application.GamePanel;
-import entity.character.CHR_Baba;
-import entity.character.CHR_Keke;
+import application.GamePanel.Direction;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -17,17 +16,68 @@ import static application.GamePanel.Direction.*;
 
 public class Entity {
 
-    // Properties an object can have
+    // Properties an Entity can have
     public enum Property {
-        DEFEAT,
+        DEFEAT {
+            @Override
+            void onTouch(Entity self, Entity other) {
+                other.kill();
+            }
+        },
         FLOAT,
-        OPEN,
-        PUSH,
-        SHUT,
-        SINK,
-        STOP,
-        WIN,
-        YOU,
+        OPEN {
+            @Override
+            void onTouch(Entity self, Entity other) {
+                if (other.has(SHUT)) {
+                    self.kill();
+                    other.kill();
+                }
+            }
+        },
+        PUSH {
+            @Override
+            boolean allowsPush() {
+                return true;
+            }
+        },
+        SHUT {
+            @Override
+            boolean blocksMovement(Entity self, Entity mover, Direction dir) {
+                return !mover.has(OPEN);
+            }
+        },
+        SINK {
+            @Override
+            void onTouch(Entity self, Entity other) {
+                if (!other.has(FLOAT)) {
+                    self.kill();
+                    other.kill();
+                }
+            }
+        },
+        STOP {
+            @Override
+            boolean blocksMovement(Entity self, Entity mover, Direction dir) {
+                return true;
+            }
+        },
+        WIN {
+            @Override
+            void onTouch(Entity self, Entity other) {
+                if (other.has(YOU)) {
+                    self.gp.win = true;
+                }
+            }
+        },
+        YOU;
+
+        void onTouch(Entity self, Entity other) {}
+        boolean blocksMovement(Entity self, Entity mover, Direction dir) {
+            return false;
+        }
+        boolean allowsPush() {
+            return false;
+        }
     }
 
     // Empty enum list to hold properties
@@ -107,6 +157,10 @@ public class Entity {
         return image;
     }
 
+    private boolean has(Property p) {
+        return properties.contains(p);
+    }
+
     /**
      * UPDATE
      * Updates the entity
@@ -134,7 +188,24 @@ public class Entity {
             case RIGHT-> worldX += speed;
         }
 
-        if (this instanceof CHR_Baba || this instanceof CHR_Keke) {
+        if (this instanceof CharacterEntity) {
+            cycleSprites();
+        }
+
+        pixelCounter += speed;
+        if (pixelCounter >= gp.tileSize) {
+            resetMovement();
+            checkRules();
+        }
+    }
+    private void moveBackwards() {
+
+        if (previousWorldX > worldX) worldX += speed;
+        else if (previousWorldX < worldX) worldX -= speed;
+        else if (previousWorldY > worldY) worldY += speed;
+        else if (previousWorldY < worldY) worldY -= speed;
+
+        if (this instanceof CharacterEntity) {
             cycleSprites();
         }
 
@@ -145,21 +216,22 @@ public class Entity {
         }
     }
 
-    private void moveBackwards() {
-
-        if (previousWorldX > worldX) worldX += speed;
-        else if (previousWorldX < worldX) worldX -= speed;
-        else if (previousWorldY > worldY) worldY += speed;
-        else if (previousWorldY < worldY) worldY -= speed;
-
-        if (this instanceof CHR_Baba || this instanceof CHR_Keke) {
-            cycleSprites();
+    private void checkRules() {
+        for (Entity[] entities : gp.getAllEntities()) {
+            checkEntities(entities);
         }
+    }
+    private void checkEntities(Entity[] entities) {
+        int ent = gp.cChecker.checkEntity(this, entities);
 
-        pixelCounter += speed;
-        if (pixelCounter >= gp.tileSize) {
-            resetMovement();
-            checkRules();
+        if (ent != -1) {
+            onTouch(entities[ent]);
+            entities[ent].onTouch(this);
+        }
+    }
+    private void onTouch(Entity other) {
+        for (Property p : properties) {
+            p.onTouch(this, other);
         }
     }
 
@@ -176,23 +248,6 @@ public class Entity {
         spriteCounter = 0;
         collisionOn = false;
         gp.rulesCheck = true;
-    }
-
-    /**
-     * CHECK RULES
-     * Checks various rules in play on each entity list
-     * Called by pushEntities()
-     */
-    private void checkRules() {
-        checkEntities(gp.words);
-        checkEntities(gp.obj);
-        checkEntities(gp.iTiles);
-        checkEntities(gp.chr);
-    }
-
-    public void startMove(GamePanel.Direction dir) {
-        this.direction = dir;
-        this.moving = true;
     }
 
     /**
@@ -213,13 +268,13 @@ public class Entity {
         List<Entity> stack = gp.cChecker.getEntitiesAtNextTile(entity, dir);
         for (Entity e : stack) {
 
-            // Can't move, entity has STOP or SHUT
-            if (e.properties.contains(Property.STOP) || (e.properties.contains(Property.SHUT) && !entity.properties.contains(Property.OPEN))) {
+            // Can't move
+            if (e.blocks(entity, dir)) {
                 return false;
             }
 
             // Entity has PUSH, attempt to move
-            if (e.properties.contains(Property.PUSH) || e instanceof WordEntity) {
+            if (e.canBePushed()) {
 
                 // Can't move
                 if (!canMove(e, dir, moveSet)) {
@@ -232,94 +287,39 @@ public class Entity {
 
         return true;
     }
-
-    /**
-     * CHECK ENTITIES
-     * Checks each type of collision for given entity list
-     * @param entities List of entities to check collision against
-     */
-    private void checkEntities(Entity[] entities) {
-        int ent = gp.cChecker.checkEntity(this, entities);
-
-        if (ent != -1) {
-            checkSink(entities[ent]);
-            checkOpen(entities[ent]);
-            checkDefeat(entities[ent]);
-            checkWin(entities[ent]);
+    private boolean blocks(Entity mover, GamePanel.Direction dir) {
+        for (Property p : properties) {
+            if (p.blocksMovement(this, mover, dir)) {
+                return true;
+            }
         }
+        return false;
+    }
+    private boolean canBePushed() {
+        if (this instanceof WordEntity) {
+            return true;
+        }
+
+        for (Property p : properties) {
+            if (p.allowsPush()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
-    /**
-     * CHECK SINK
-     * Sets alive to false if the object has SINK
-     * Called by checkEntities()
-     */
-    private void checkSink(Entity obj) {
-        if (!properties.contains(Property.FLOAT) && (obj.properties.contains(Property.SINK) && !obj.properties.contains(Property.STOP))) {
-            alive = false;
-            resetMovement();
-
-            obj.alive = false;
-            obj.resetMovement();
-        }
+    public void move(GamePanel.Direction dir) {
+        this.direction = dir;
+        this.moving = true;
     }
+    private void kill() {
+        if (!alive) return;
 
-    /**
-     * CHECK DEFEAT
-     * Sets alive to false if the object has DEFEAT
-     * Called by checkEntities(0
-     */
-    private void checkDefeat(Entity obj) {
-        if (obj.properties.contains(Property.DEFEAT) && !obj.properties.contains(Property.STOP)) {
-            alive = false;
-            resetMovement();
-        }
+        alive = false;
+        resetMovement();
     }
-
-    /**
-     * CHECK OPEN
-     * Sets alive to false if the object has SHUT and entity has OPEN
-     * Called by checkEntities()
-     */
-    private void checkOpen(Entity obj) {
-        if (properties.contains(Property.OPEN) && (obj.properties.contains(Property.SHUT) && !obj.properties.contains(Property.STOP))) {
-            alive = false;
-            resetMovement();
-
-            obj.alive = false;
-            obj.resetMovement();
-        }
-    }
-
-    /**
-     * CHECK WIN
-     * Checks if the entity can win the game/level
-     * Entity needs to be controlled by player to win
-     */
-    public void checkWin(Entity obj) {
-        if (properties.contains(Property.YOU) && obj.properties.contains(Property.WIN)) {
-            gp.win = true;
-        }
-    }
-
-    /**
-     * CYCLE SPRITES
-     * Changes the animation counter for draw to render the correct sprite
-     */
-    private void cycleSprites() {
-        if (pixelCounter > 0 && pixelCounter < gp.tileSize) {
-            spriteNum = 2;
-        }
-        else  {
-            spriteNum = 1;
-        }
-    }
-
-    /**
-     * SET FORM
-     * Changes the entity's properties to match the new form
-     */
-    public void setForm(Entity newForm) {
+    public void transform(Entity newForm) {
         collisionOn = false;
 
         // Copy all attributes from new form
@@ -333,6 +333,19 @@ public class Entity {
         left2 = newForm.left2;
         right1 = newForm.right1;
         right2 = newForm.right2;
+    }
+
+    /**
+     * CYCLE SPRITES
+     * Changes the animation counter for draw to render the correct sprite
+     */
+    private void cycleSprites() {
+        if (pixelCounter > 0 && pixelCounter < gp.tileSize) {
+            spriteNum = 2;
+        }
+        else  {
+            spriteNum = 1;
+        }
     }
 
     /**
