@@ -31,7 +31,8 @@ public record SaveLoad(GamePanel gp) {
 
             ds.level_name = levelName;
 
-            SimpleDateFormat sdf = new SimpleDateFormat("MMM d, yyyy");
+            // 01/31/2026 format
+            SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
             sdf.setTimeZone(TimeZone.getTimeZone("America/New_York"));
             ds.file_date = sdf.format(new Date(System.currentTimeMillis()));
 

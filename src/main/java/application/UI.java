@@ -35,10 +35,9 @@ public class UI {
 
     private boolean wasYPressed = false;
 
-    public String lvlName = "";
+    public String textInput = "";
     private final Map<Integer, String> keyboard = new LinkedHashMap<>();
     private boolean capital = true;
-    private final int MAX_LVL_NAME = 20;
 
     /**
      * CONSTRUCTOR
@@ -139,6 +138,7 @@ public class UI {
     private void drawGrid() {
         // Semi-transparent white
         g2.setColor(new Color(255, 255, 255, 50));
+        g2.setStroke(new BasicStroke(1));
 
         // Vertical lines
         for (int col = 0; col <= gp.maxWorldCol; col++) {
@@ -195,19 +195,22 @@ public class UI {
 
     private void drawEditing_Pause() {
 
+        int x = gp.tileSize * 2;
+        int y = gp.tileSize * 2;
+        int width = gp.tileSize * 4;
+        int height = gp.tileSize * 6;
+        drawSubWindow(x, y, width, height);
+
         g2.setColor(Color.WHITE);
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 32F));
 
-        int frameX = gp.tileSize * 2;
-        int frameY = gp.tileSize;
-
-        int textX = frameX + gp.tileSize * 2;
-        int textY = frameY + (gp.tileSize * 2 + 10);
+        x = gp.tileSize * 3;
+        y = gp.tileSize * 3;
 
         // NEW
-        g2.drawString("New", textX, textY);
+        g2.drawString("New", x, y);
         if (commandNum == 0) {
-            g2.drawString(">", textX - 25, textY);
+            g2.drawString(">", x - 25, y);
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
 
@@ -218,10 +221,10 @@ public class UI {
         }
 
         // PLAY
-        textY += gp.tileSize;
-        g2.drawString("Play", textX, textY);
+        y += gp.tileSize;
+        g2.drawString("Play", x, y);
         if (commandNum == 1) {
-            g2.drawString(">", textX - 25, textY);
+            g2.drawString(">", x - 25, y);
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
 
@@ -234,10 +237,10 @@ public class UI {
         }
 
         // SAVE
-        textY += gp.tileSize;
-        g2.drawString("Save", textX, textY);
+        y += gp.tileSize;
+        g2.drawString("Save", x, y);
         if (commandNum == 2) {
-            g2.drawString(">", textX - 25, textY);
+            g2.drawString(">", x - 25, y);
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
 
@@ -247,10 +250,10 @@ public class UI {
         }
 
         // LOAD
-        textY += gp.tileSize;
-        g2.drawString("Load", textX, textY);
+        y += gp.tileSize;
+        g2.drawString("Load", x, y);
         if (commandNum == 3) {
-            g2.drawString(">", textX - 25, textY);
+            g2.drawString(">", x - 25, y);
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
 
@@ -262,10 +265,10 @@ public class UI {
         }
 
         // DELETE
-        textY += gp.tileSize;
-        g2.drawString("Delete", textX, textY);
+        y += gp.tileSize;
+        g2.drawString("Delete", x, y);
         if (commandNum == 4) {
-            g2.drawString(">", textX - 25, textY);
+            g2.drawString(">", x - 25, y);
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
 
@@ -304,23 +307,24 @@ public class UI {
 
         if (gp.saveFiles.isEmpty() && !isSaving) return;
 
-        g2.setColor(Color.WHITE);
+        int x = gp.tileSize * 2;
+        int y = gp.tileSize * 2;
+        int width = gp.tileSize * 20;
+        int height = gp.tileSize * (gp.saveFiles.size() + 2);
+        drawSubWindow(x, y, width, height);
 
-        int frameX = gp.tileSize * 2;
-        int frameY = gp.tileSize;
-
-        int textX = frameX + gp.tileSize * 2;
-        int textY = frameY + (gp.tileSize * 2 + 10);
+        x = gp.tileSize * 3;
+        y = gp.tileSize * 3;
         String text;
 
-        int i = 0;
+        int index = 0;
         for (Map.Entry<String, String> entry : gp.saveFiles.entrySet()) {
 
-            text = i + 1 + ")  " + entry.getValue();
-            g2.drawString(text, textX, textY);
+            text = index + 1 + ")  " + entry.getValue();
+            g2.drawString(text, x, y);
 
-            if (commandNum == i) {
-                g2.drawString(">", textX - 25, textY);
+            if (commandNum == index) {
+                g2.drawString(">", x - 25, y);
 
                 if (gp.keyH.aPressed) {
                     gp.keyH.aPressed = false;
@@ -329,7 +333,9 @@ public class UI {
                     subState = 0;
 
                     if (isSaving) {
-                        gp.saveLoad.save(entry.getValue(), entry.getKey());
+                        // Chop off date from level name
+                        String lvlName = text.contains(" [") ? text.substring(0, text.indexOf(" [")) : text;
+                        gp.saveLoad.save(lvlName, entry.getKey());
                     }
                     else if (isLoading) {
                         gp.saveLoad.load(entry.getKey());
@@ -340,16 +346,16 @@ public class UI {
                 }
             }
 
-            i++;
-            textY += gp.tileSize;
+            index++;
+            y += gp.tileSize;
         }
 
         if (isSaving) {
             text = gp.saveFiles.size() + 1 + ")  NEW";
-            g2.drawString(text, textX, textY);
+            g2.drawString(text, x, y);
 
             if (commandNum == gp.saveFiles.size()) {
-                g2.drawString(">", textX - 25, textY);
+                g2.drawString(">", x - 25, y);
 
                 if (gp.keyH.aPressed) {
                     gp.keyH.aPressed = false;
@@ -389,68 +395,15 @@ public class UI {
     private void drawEditing_SaveName() {
 
         g2.setColor(Color.WHITE);
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 32F));
+
+        drawKeyboard("Please name your level");
+        handleKeyboardInput();
+    }
+    private void handleKeyboardInput() {
+
+        int MAX_LVL_NAME = 20;
         String keyboardLetters = (capital) ? "QWERTYUIOPASDFGHJKLZXCVBNM_" : "qwertyuiopasdfghjklzxcvbnm_";
-
-        editing_Keyboard(keyboardLetters);
-        handleKeyboardInput(keyboardLetters);
-    }
-    private void editing_Keyboard(String keyboardLetters) {
-
-        int defaultX = gp.screenWidth / 4;
-        int x = defaultX;
-        int y = gp.tileSize * 4;
-        String text = "Please name your level:";
-        g2.drawString(text, x, y);
-
-        y += gp.tileSize * 2;
-        text = lvlName.length() <= MAX_LVL_NAME ?
-                "-> " + lvlName + "_" :
-                "-> " + lvlName;
-        g2.drawString(text, x, y);
-
-        y += gp.tileSize;
-        for (int i = 0; i < keyboardLetters.length(); i++) {
-
-            if (keyboardLetters.charAt(i) == 'A' || keyboardLetters.charAt(i) == 'Z') {
-                x = defaultX;
-                y += gp.tileSize;
-            }
-            else if (keyboardLetters.charAt(i) == 'a' || keyboardLetters.charAt(i) == 'z') {
-                x = defaultX;
-                y += gp.tileSize;
-            }
-
-            if (commandNum == i) {
-                g2.drawString("[" + keyboardLetters.charAt(i) + "]", x, y);
-            }
-            else {
-                g2.drawString(" " + keyboardLetters.charAt(i) + " ", x, y);
-            }
-
-            x += gp.tileSize;
-        }
-
-        text = commandNum == keyboardLetters.length() ? "[DEL]" : " DEL ";
-        g2.drawString(text, x, y);
-
-        x += (int) (gp.tileSize * 1.75);
-        text = commandNum == keyboardLetters.length() + 1 ? "[CAP]" : " CAP ";
-        g2.drawString(text, x, y);
-
-        x = gp.screenWidth / 3;
-        y += (int) (gp.tileSize * 1.25);
-        g2.drawString("GO BACK", x, y);
-        if (commandNum == keyboardLetters.length() + 2) {
-            g2.drawString(">", x - gp.tileSize / 2, y);
-        }
-
-        x += gp.tileSize * 5;
-        g2.drawString("ENTER", x, y);
-        if (commandNum == keyboardLetters.length() + 3) {
-            g2.drawString(">", x - gp.tileSize / 2, y);
-        }
-    }
-    private void handleKeyboardInput(String keyboardLetters) {
 
         for (int i = 0; i < keyboardLetters.length(); i++) {
             keyboard.put(i, String.valueOf(keyboardLetters.charAt(i)));
@@ -508,18 +461,31 @@ public class UI {
                 commandNum++;
             }
         }
-        else if (gp.keyH.bPressed && !lvlName.isEmpty()) {
+        else if (gp.keyH.bPressed && !textInput.isEmpty()) {
             gp.keyH.bPressed = false;
-            lvlName = lvlName.substring(0, lvlName.length() - 1);
+            textInput = textInput.substring(0, textInput.length() - 1);
         }
         else if (gp.keyH.aPressed) {
             gp.keyH.aPressed = false;
 
-            // DEL BUTTON
-            if (commandNum == keyboardLetters.length()) {
-                if (!lvlName.isEmpty()) {
-                    lvlName = lvlName.substring(0, lvlName.length() - 1);
+            // LETTER SELECT
+            if (commandNum < keyboardLetters.length()) {
+                if (textInput.length() > MAX_LVL_NAME) return;
+
+                // SPACE BUTTON
+                if (commandNum == keyboardLetters.length() - 1) {
+                    textInput += " ";
                 }
+                // LETTER
+                else {
+                    // Get char in map via corresponding key (EX: 0 -> Q, 10 -> A)
+                    textInput += keyboard.get(commandNum);
+                }
+            }
+            // DEL BUTTON
+            else if (commandNum == keyboardLetters.length()) {
+                if (textInput.isEmpty()) return;
+                textInput = textInput.substring(0, textInput.length() - 1);
             }
             // CAPS BUTTON
             else if (commandNum == keyboardLetters.length() + 1) {
@@ -530,22 +496,15 @@ public class UI {
                 commandNum = 0;
                 subState = 2;
             }
-            // ENTER BUTTON
-            else if (commandNum == keyboardLetters.length() + 3 && lvlName.length() > 2 && lvlName.length() <= MAX_LVL_NAME) {
-                gp.saveLoad.save(lvlName, "");
+            // SUBMIT BUTTON
+            else if (commandNum == keyboardLetters.length() + 3) {
+                if (textInput.length() < 3 || textInput.length() > MAX_LVL_NAME) return;
+
+                gp.saveLoad.save(textInput, "");
+                textInput = "";
+                capital = true;
                 commandNum = 0;
                 subState = 1;
-            }
-            // LETTER SELECT
-            else if (lvlName.length() < MAX_LVL_NAME) {
-
-                // Get char in map via corresponding key (EX: 0 -> Q, 10 -> A)
-                // Convert "_" to " "
-                String letter = commandNum == keyboardLetters.length() - 1 ?
-                        " " :
-                        keyboard.get(commandNum);
-
-                lvlName += letter;
             }
         }
     }
@@ -556,38 +515,57 @@ public class UI {
     }
     private void editing_menu() {
 
-        int cursorX = (gp.screenWidth / 2) - gp.tileSize;
+        int baseX = (int) (gp.tileSize * 12.5);
+        int baseY = (int) (gp.tileSize * 7.5);
+        int width = gp.tileSize * 8;
+        int height = gp.tileSize * 2;
+        g2.setColor(new Color(0, 0, 0, 235));
+        g2.fillRoundRect(baseX, baseY, width, height, 0, 0);
+
+        int listSpacingX = (int) (gp.tileSize * 1.50);
+        int entitySpacingY = (int) (gp.tileSize * 1.75);
+
+        int cursorX = baseX + (entityListIndex * listSpacingX + 25);
         int cursorY = (gp.screenHeight / 2) - gp.tileSize;
 
-        int scrollOffsetX = cursorX - (entityListIndex * gp.tileSize);
-        int scrollOffsetY = cursorY - (entityIndex * gp.tileSize);
+        int scrollOffsetY = cursorY - (entityIndex * entitySpacingY);
 
-        int x, y;
         for (int i = 0; i < entityLibrary.size(); i++) {
 
-            // Shift lists left or right while keeping cursor the same
-            x = scrollOffsetX + (i * gp.tileSize);
-
-            // Shift entire list down to cursor's Y if current list
-            y = entityListIndex == i ? scrollOffsetY : cursorY;
+            int x = baseX + (i * listSpacingX + 25);
+            int y = (i == entityListIndex) ? scrollOffsetY : cursorY;
 
             for (int c = 0; c < entityLibrary.get(i).size(); c++) {
 
-                // Reduce transparency if not active list
-                if (i != entityListIndex) {
-                    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.4f));
+                if (i == entityListIndex) {
+                    if (Math.abs(c - entityIndex) > 2) {
+                        y += entitySpacingY;
+                        continue;
+                    }
                 }
-                g2.drawImage(entityLibrary.get(i).get(c).getImage(), x, y, gp.tileSize, gp.tileSize, null);
+                else if (c != 0) {
+                    continue;
+                }
+
+                if (i == entityListIndex && c == entityIndex) {
+                    g2.drawImage(cursor,cursorX - 10, cursorY - 10,gp.tileSize + 20, gp.tileSize + 20,null);
+                }
+
+                if (i == entityListIndex && c != entityIndex) {
+                    g2.setColor(new Color(28, 28, 28, 200));
+                    g2.fillRoundRect(x - 10, y - 10,gp.tileSize + 20, gp.tileSize + 20,0, 0);
+                }
+
+                if (i != entityListIndex || c != entityIndex) {
+                    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.75f));
+                }
+                g2.drawImage(entityLibrary.get(i).get(c).getImage(), x, y, gp.tileSize, gp.tileSize,null);
                 g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
 
-                // Draw cursor if current selection
-                if (entityListIndex == i && entityIndex == c) {
-                    g2.drawImage(cursor, cursorX, cursorY, gp.tileSize, gp.tileSize, null);
-                }
-
-                y += gp.tileSize;
+                y += entitySpacingY;
             }
         }
+
     }
     private void editing_menu_Input_Dir() {
         if (gp.keyH.upPressed) {
@@ -663,10 +641,10 @@ public class UI {
         // Entity currently selected, draw sprite under cursor
         if (selectedEntity != null) {
             g2.drawImage(selectedEntity.image, slotCol, slotRow, gp.tileSize, gp.tileSize, null);
-            g2.drawImage(cursor_select, slotCol, slotRow, gp.tileSize, gp.tileSize, null);
+            g2.drawImage(cursor_select, slotCol - 6, slotRow - 6, gp.tileSize + 13, gp.tileSize + 13, null);
         }
         else {
-            g2.drawImage(cursor, slotCol, slotRow, gp.tileSize, gp.tileSize, null);
+            g2.drawImage(cursor, slotCol - 6, slotRow - 6, gp.tileSize + 13, gp.tileSize + 13, null);
         }
     }
 
@@ -810,6 +788,84 @@ public class UI {
         g2.drawString("Column: " + gp.chr[0].worldX / gp.tileSize, x, y);
         y += lineHeight;
         g2.drawString("Row: " + gp.chr[0].worldY / gp.tileSize, x, y);
+    }
+
+    private void drawKeyboard(String title) {
+
+        String keyboardLetters = (capital) ? "QWERTYUIOPASDFGHJKLZXCVBNM_" : "qwertyuiopasdfghjklzxcvbnm_";
+
+        int defaultX = gp.tileSize * 9;
+        int x = defaultX;
+        int y = gp.tileSize * 3;
+        int width = gp.tileSize * 13;
+        int height = gp.screenHeight / 2;
+        drawSubWindow(x, y, width, height);
+
+        x = getXForCenteredTextOnWidth(title, width, x);
+        y += (int) (gp.tileSize * 1.25);
+        g2.drawString(title, x, y);
+
+        defaultX += gp.tileSize;
+        x = defaultX;
+        y += (int) (gp.tileSize * 1.5);
+        g2.drawString(textInput, x, y);
+
+        String text;
+        y += gp.tileSize * 2;
+        int index = 0;
+        for (char key : keyboardLetters.toCharArray()) {
+            if (key == 'A' || key == 'a' || key == 'Z' || key == 'z') {
+                x = defaultX;
+                y += gp.tileSize;
+            }
+
+            text = commandNum == index ?  "[" + key + "]" : " " + key + " ";
+            g2.drawString(text, x, y);
+
+            x += gp.tileSize;
+            index++;
+        }
+
+        text = commandNum == keyboardLetters.length() ? "[DEL]" : " DEL ";
+        g2.drawString(text, x, y);
+
+        x += (int) (gp.tileSize * 1.75);
+        text = commandNum == keyboardLetters.length() + 1 ? "[CAP]" : " CAP ";
+        g2.drawString(text, x, y);
+
+        x = defaultX + gp.tileSize * 2;
+        y += (int) (gp.tileSize * 1.5);
+        g2.drawString("GO BACK", x, y);
+        if (commandNum == keyboardLetters.length() + 2) {
+            g2.drawString(">", x - gp.tileSize / 2, y);
+        }
+
+        x += gp.tileSize * 5;
+        g2.drawString("SUBMIT", x, y);
+        if (commandNum == keyboardLetters.length() + 3) {
+            g2.drawString(">", x - gp.tileSize / 2, y);
+        }
+    }
+
+    private void drawSubWindow(int x, int y, int width, int height) {
+
+        // Black (RGB, Transparency)
+        Color c = new Color(0, 0, 0, 220);
+        g2.setColor(c);
+        g2.fillRoundRect(x, y, width, height, 25, 25);
+
+        // White (RGB)
+        c = new Color(255, 255, 255);
+        g2.setColor(c);
+        g2.setStroke(new BasicStroke(5));
+        g2.drawRoundRect(x + 5, y + 5, width - 10, height - 10, 15, 15);
+    }
+
+    private int getXForCenteredTextOnWidth(String text, int width, int x) {
+        FontMetrics fm = g2.getFontMetrics();
+        int stringWidth = fm.stringWidth(text);
+        int centeredX = (width - stringWidth) / 2;
+        return centeredX + x;
     }
 
     private BufferedImage setup(String imagePath) {

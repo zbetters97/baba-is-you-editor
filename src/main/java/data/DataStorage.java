@@ -19,6 +19,6 @@ public class DataStorage implements Serializable {
     int[][] water_ori, water_side;
 
     public String toString() {
-        return level_name;
+        return level_name + " [" + file_date + "]";
     }
 }
