@@ -56,18 +56,19 @@ public class UI {
         entityLibrary.addAll(Arrays.asList(
                 buildEntityLibraryList(
                         "words",
-                        "WORD_IS", "WORD_BABA", "WORD_FLAG", "WORD_KEKE",
-                        "WORD_ROCK", "WORD_SKULL", "WORD_TEXT", "WORD_WALL", "WORD_WATER"
+                        "WORD_IS", "WORD_BABA", "WORD_DOOR", "WORD_FLAG",
+                        "WORD_KEKE", "WORD_KEY", "WORD_ROCK", "WORD_SKULL",
+                        "WORD_TEXT", "WORD_WALL", "WORD_WATER"
                 ),
                 buildEntityLibraryList(
                         "words",
-                        "WORD_DEFEAT", "WORD_FLOAT", "WORD_PUSH", "WORD_SINK",
+                        "WORD_DEFEAT", "WORD_FLOAT", "WORD_OPEN", "WORD_PUSH", "WORD_SHUT", "WORD_SINK",
                         "WORD_STOP", "WORD_WIN", "WORD_YOU"
                 ),
                 buildITilesLibraryList(),
                 buildEntityLibraryList(
                         "objects",
-                        "FLAG", "ROCK", "SKULL"
+                        "DOOR", "FLAG", "KEY", "ROCK", "SKULL"
                 ),
                 buildEntityLibraryList(
                         "characters",
@@ -197,8 +198,8 @@ public class UI {
 
         int x = gp.tileSize * 2;
         int y = gp.tileSize * 2;
-        int width = gp.tileSize * 4;
-        int height = gp.tileSize * 6;
+        int width = (int) (gp.tileSize * 3.5);
+        int height = (int) (gp.tileSize * 5.5);
         drawSubWindow(x, y, width, height);
 
         g2.setColor(Color.WHITE);
@@ -207,23 +208,9 @@ public class UI {
         x = gp.tileSize * 3;
         y = gp.tileSize * 3;
 
-        // NEW
-        g2.drawString("New", x, y);
-        if (commandNum == 0) {
-            g2.drawString(">", x - 25, y);
-            if (gp.keyH.aPressed) {
-                gp.keyH.aPressed = false;
-
-                commandNum = 0;
-                subState = 0;
-                gp.saveLoad.resetData();
-            }
-        }
-
         // PLAY
-        y += gp.tileSize;
         g2.drawString("Play", x, y);
-        if (commandNum == 1) {
+        if (commandNum == 0) {
             g2.drawString(">", x - 25, y);
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
@@ -239,7 +226,7 @@ public class UI {
         // SAVE
         y += gp.tileSize;
         g2.drawString("Save", x, y);
-        if (commandNum == 2) {
+        if (commandNum == 1) {
             g2.drawString(">", x - 25, y);
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
@@ -252,7 +239,7 @@ public class UI {
         // LOAD
         y += gp.tileSize;
         g2.drawString("Load", x, y);
-        if (commandNum == 3) {
+        if (commandNum == 2) {
             g2.drawString(">", x - 25, y);
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
@@ -267,7 +254,7 @@ public class UI {
         // DELETE
         y += gp.tileSize;
         g2.drawString("Delete", x, y);
-        if (commandNum == 4) {
+        if (commandNum == 3) {
             g2.drawString(">", x - 25, y);
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
@@ -276,6 +263,20 @@ public class UI {
 
                 commandNum = 0;
                 subState = 4;
+            }
+        }
+
+        // NEW
+        y += gp.tileSize;
+        g2.drawString("New", x, y);
+        if (commandNum == 4) {
+            g2.drawString(">", x - 25, y);
+            if (gp.keyH.aPressed) {
+                gp.keyH.aPressed = false;
+
+                commandNum = 0;
+                subState = 0;
+                gp.saveLoad.resetData();
             }
         }
 

@@ -30,7 +30,9 @@ public record EntityGenerator(GamePanel gp) {
 
     private Entity getObject(String eName) {
         return switch (eName) {
+            case OBJ_Door.objName -> new OBJ_Door(gp, 0, 0);
             case OBJ_Flag.objName -> new OBJ_Flag(gp, 0, 0);
+            case OBJ_Key.objName -> new OBJ_Key(gp, 0, 0);
             case OBJ_Rock.objName -> new OBJ_Rock(gp, 0,0);
             case OBJ_Skull.objName -> new OBJ_Skull(gp, 0,0);
             default -> null;
@@ -49,12 +51,16 @@ public record EntityGenerator(GamePanel gp) {
         return switch(wName) {
             case WORD_Baba.wordName -> new WORD_Baba(gp, 0, 0);
             case WORD_Defeat.wordName -> new WORD_Defeat(gp, 0,0);
+            case WORD_Door.wordName -> new WORD_Door(gp, 0, 0);
             case WORD_Flag.wordName -> new WORD_Flag(gp, 0,0);
             case WORD_Float.wordName -> new WORD_Float(gp, 0,0);
             case WORD_Is.wordName -> new WORD_Is(gp, 0,0);
             case WORD_Keke.wordName -> new WORD_Keke(gp, 0, 0);
+            case WORD_Key.wordName -> new WORD_Key(gp, 0, 0);
+            case WORD_Open.wordName -> new WORD_Open(gp, 0, 0);
             case WORD_Push.wordName -> new WORD_Push(gp, 0,0);
             case WORD_Rock.wordName -> new WORD_Rock(gp, 0,0);
+            case WORD_Shut.wordName -> new WORD_Shut(gp, 0,0);
             case WORD_Skull.wordName -> new WORD_Skull(gp, 0,0);
             case WORD_Sink.wordName -> new WORD_Sink(gp, 0,0);
             case WORD_Stop.wordName -> new WORD_Stop(gp, 0,0);

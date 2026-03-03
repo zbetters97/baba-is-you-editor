@@ -15,7 +15,9 @@ public record LogicHandler(GamePanel gp) {
     private static final Map<String, Entity.Property> PROPERTY_MAP = Map.of(
             WORD_Defeat.wordName, Property.DEFEAT,
             WORD_Float.wordName, Property.FLOAT,
+            WORD_Open.wordName, Property.OPEN,
             WORD_Push.wordName, Property.PUSH,
+            WORD_Shut.wordName, Property.SHUT,
             WORD_Sink.wordName, Property.SINK,
             WORD_Stop.wordName, Property.STOP,
             WORD_You.wordName, Property.YOU,

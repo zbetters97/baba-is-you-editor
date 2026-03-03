@@ -21,7 +21,9 @@ public class Entity {
     public enum Property {
         DEFEAT,
         FLOAT,
+        OPEN,
         PUSH,
+        SHUT,
         SINK,
         STOP,
         WIN,
@@ -211,8 +213,8 @@ public class Entity {
         List<Entity> stack = gp.cChecker.getEntitiesAtNextTile(entity, dir);
         for (Entity e : stack) {
 
-            // Can't move, entity has STOP
-            if (e.properties.contains(Property.STOP)) {
+            // Can't move, entity has STOP or SHUT
+            if (e.properties.contains(Property.STOP) || (e.properties.contains(Property.SHUT) && !entity.properties.contains(Property.OPEN))) {
                 return false;
             }
 
@@ -241,7 +243,7 @@ public class Entity {
 
         if (ent != -1) {
             checkSink(entities[ent]);
-            checkWin(entities[ent]);
+            checkOpen(entities[ent]);
             checkDefeat(entities[ent]);
             checkWin(entities[ent]);
         }
@@ -271,6 +273,21 @@ public class Entity {
         if (obj.properties.contains(Property.DEFEAT) && !obj.properties.contains(Property.STOP)) {
             alive = false;
             resetMovement();
+        }
+    }
+
+    /**
+     * CHECK OPEN
+     * Sets alive to false if the object has SHUT and entity has OPEN
+     * Called by checkEntities()
+     */
+    private void checkOpen(Entity obj) {
+        if (properties.contains(Property.OPEN) && (obj.properties.contains(Property.SHUT) && !obj.properties.contains(Property.STOP))) {
+            alive = false;
+            resetMovement();
+
+            obj.alive = false;
+            obj.resetMovement();
         }
     }
 
