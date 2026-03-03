@@ -11,17 +11,20 @@ import java.util.Map;
 public record LogicHandler(GamePanel gp) {
 
     // Words mapped to a property
-    private static final Map<String, Entity.Property> PROPERTY_MAP = Map.of(
-            WORD_Defeat.wordName, Property.DEFEAT,
-            WORD_Float.wordName, Property.FLOAT,
-            WORD_Open.wordName, Property.OPEN,
-            WORD_Push.wordName, Property.PUSH,
-            WORD_Shut.wordName, Property.SHUT,
-            WORD_Sink.wordName, Property.SINK,
-            WORD_Stop.wordName, Property.STOP,
-            WORD_You.wordName, Property.YOU,
-            WORD_Win.wordName, Property.WIN
-    );
+    private static final Map<String, Entity.Property> PROPERTY_MAP =
+            Map.ofEntries(
+                    Map.entry(WORD_Defeat.wordName, Property.DEFEAT),
+                    Map.entry(WORD_Float.wordName, Property.FLOAT),
+                    Map.entry(WORD_Hot.wordName, Property.HOT),
+                    Map.entry(WORD_Melt.wordName, Property.MELT),
+                    Map.entry(WORD_Open.wordName, Property.OPEN),
+                    Map.entry(WORD_Push.wordName, Property.PUSH),
+                    Map.entry(WORD_Shut.wordName, Property.SHUT),
+                    Map.entry(WORD_Sink.wordName, Property.SINK),
+                    Map.entry(WORD_Stop.wordName, Property.STOP),
+                    Map.entry(WORD_You.wordName, Property.YOU),
+                    Map.entry(WORD_Win.wordName, Property.WIN)
+            );
 
     /**
      * UPDATE
@@ -66,14 +69,14 @@ public record LogicHandler(GamePanel gp) {
 
             // Loop over all pre-existing words
             for (Entity word : gp.words) {
-                if (word != null) {
-                    int x = word.worldX / gp.tileSize;
-                    int y = word.worldY / gp.tileSize;
+                if (word == null) continue;
 
-                    // Word's X matches column, add to corresponding Y (row) in list
-                    if (x == col) {
-                        colWords[y] = word.name;
-                    }
+                int x = word.worldX / gp.tileSize;
+                int y = word.worldY / gp.tileSize;
+
+                // Word's X matches column, add to corresponding Y (row) in list
+                if (x == col) {
+                    colWords[y] = word.name;
                 }
             }
 
@@ -98,14 +101,14 @@ public record LogicHandler(GamePanel gp) {
 
             // Loop over all pre-existing words
             for (Entity word : gp.words) {
-                if (word != null) {
-                    int x = word.worldX / gp.tileSize;
-                    int y = word.worldY / gp.tileSize;
+                if (word == null) continue;
 
-                    // Word is on same row, add to corresponding X (column) in list
-                    if (y == row) {
-                        rowWords[x] = word.name;
-                    }
+                int x = word.worldX / gp.tileSize;
+                int y = word.worldY / gp.tileSize;
+
+                // Word is on same row, add to corresponding X (column) in list
+                if (y == row) {
+                    rowWords[x] = word.name;
                 }
             }
 
@@ -130,25 +133,38 @@ public record LogicHandler(GamePanel gp) {
             // Linking verb (ex: IS)
             String verb = words[i + 1];
 
-            // The action applied to the object (ex: WIN)
-            String predicate = words[i + 2];
-
             // Does not equal a rule
-            if (subject.isEmpty() || predicate.isEmpty() || !verb.equals(WORD_Is.wordName)) {
+            if (subject.isEmpty() || !verb.equals(WORD_Is.wordName)) {
                 continue;
             }
 
-            // Matching property to the predicate
-            Entity.Property property = PROPERTY_MAP.get(predicate);
-            if (property != null) {
-                applyPropertyRule(subject, property);
-                continue;
+            int j = i + 2;
+            while (j < words.length) {
+
+                // The action applied to the object (ex: WIN)
+                String predicate = words[j];
+
+                // Matching property to the predicate
+                Entity.Property property = PROPERTY_MAP.get(predicate);
+                if (property != null) {
+                    applyPropertyRule(subject, property);
+                }
+                else {
+                    Entity newForm = gp.eGenerator.getEntity(predicate.replace("WORD_", ""), 0, 0);
+                    if (newForm != null) {
+                        applyTransformationRule(subject, newForm);
+                    }
+                }
+
+                // Break out of loop if no AND found to link another rule
+                if (j + 1 >= words.length || !words[j + 1].equals(WORD_And.wordName)) {
+                    break;
+                }
+
+                j += 2;
             }
 
-            Entity newForm = gp.eGenerator.getEntity(predicate.replace("WORD_", ""), 0, 0);
-            if (newForm != null) {
-                applyTransformationRule(subject, newForm);
-            }
+            i = j - 1;
         }
     }
 

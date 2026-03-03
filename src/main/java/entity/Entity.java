@@ -25,6 +25,15 @@ public class Entity {
             }
         },
         FLOAT,
+        HOT {
+            @Override
+            void onTouch(Entity self, Entity other) {
+                if (other.has(MELT)) {
+                    other.kill();
+                }
+            }
+        },
+        MELT,
         OPEN {
             @Override
             void onTouch(Entity self, Entity other) {
@@ -49,7 +58,8 @@ public class Entity {
         SINK {
             @Override
             void onTouch(Entity self, Entity other) {
-                if (!other.has(FLOAT)) {
+                // Both must be floating or not floating
+                if ((other.has(FLOAT) && self.has(FLOAT)) || (!other.has(FLOAT) && !self.has(FLOAT))) {
                     self.kill();
                     other.kill();
                 }

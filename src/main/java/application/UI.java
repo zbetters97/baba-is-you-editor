@@ -56,14 +56,15 @@ public class UI {
         entityLibrary.addAll(Arrays.asList(
                 buildEntityLibraryList(
                         "words",
-                        "WORD_IS", "WORD_BABA", "WORD_DOOR", "WORD_FLAG",
+                        "WORD_BABA", "WORD_DOOR", "WORD_FLAG",
                         "WORD_KEKE", "WORD_KEY", "WORD_ROCK", "WORD_SKULL",
                         "WORD_TEXT", "WORD_WALL", "WORD_WATER"
                 ),
                 buildEntityLibraryList(
                         "words",
-                        "WORD_DEFEAT", "WORD_FLOAT", "WORD_OPEN", "WORD_PUSH", "WORD_SHUT", "WORD_SINK",
-                        "WORD_STOP", "WORD_WIN", "WORD_YOU"
+                        "WORD_IS", "WORD_AND", "WORD_DEFEAT", "WORD_FLOAT",
+                        "WORD_HOT", "WORD_MELT", "WORD_OPEN", "WORD_PUSH",
+                        "WORD_SHUT", "WORD_SINK", "WORD_STOP", "WORD_WIN", "WORD_YOU"
                 ),
                 buildITilesLibraryList(),
                 buildEntityLibraryList(
@@ -314,7 +315,10 @@ public class UI {
 
                     if (isSaving) {
                         // Chop off date from level name
-                        String lvlName = text.contains(" [") ? text.substring(0, text.indexOf(" [")) : text;
+                        String lvlName = entry.getValue().contains(" [") ?
+                                entry.getValue().substring(0, entry.getValue().indexOf(" [")) :
+                                entry.getValue();
+
                         gp.saveLoad.save(lvlName, entry.getKey());
                     }
                     else if (isLoading) {
@@ -377,7 +381,7 @@ public class UI {
         g2.setColor(Color.WHITE);
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 32F));
 
-        drawKeyboard("Please name your level");
+        drawKeyboard("Please name your level", 21);
         handleKeyboardInput();
     }
     private void handleKeyboardInput() {
@@ -473,6 +477,8 @@ public class UI {
             }
             // BACK BUTTON
             else if (commandNum == keyboardLetters.length() + 2) {
+                textInput = "";
+                capital = true;
                 commandNum = 0;
                 subState = 2;
             }
@@ -760,7 +766,7 @@ public class UI {
         g2.drawString("Row: " + gp.chr[0].worldY / gp.tileSize, x, y);
     }
 
-    private void drawKeyboard(String title) {
+    private void drawKeyboard(String title, int limit) {
 
         String keyboardLetters = (capital) ? "QWERTYUIOPASDFGHJKLZXCVBNM_" : "qwertyuiopasdfghjklzxcvbnm_";
 
@@ -775,12 +781,14 @@ public class UI {
         y += (int) (gp.tileSize * 1.25);
         g2.drawString(title, x, y);
 
+        String text = textInput.length() <= limit ?
+                "-> " + textInput + "_" :
+                "-> " + textInput;
         defaultX += gp.tileSize;
         x = defaultX;
         y += (int) (gp.tileSize * 1.5);
-        g2.drawString(textInput, x, y);
+        g2.drawString(text, x, y);
 
-        String text;
         y += gp.tileSize * 2;
         int index = 0;
         for (char key : keyboardLetters.toCharArray()) {

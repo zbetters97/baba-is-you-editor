@@ -49,14 +49,17 @@ public record EntityGenerator(GamePanel gp) {
 
     private Entity getWord(String wName) {
         return switch(wName) {
+            case WORD_And.wordName ->  new WORD_And(gp, 0, 0);
             case WORD_Baba.wordName -> new WORD_Baba(gp, 0, 0);
             case WORD_Defeat.wordName -> new WORD_Defeat(gp, 0,0);
             case WORD_Door.wordName -> new WORD_Door(gp, 0, 0);
             case WORD_Flag.wordName -> new WORD_Flag(gp, 0,0);
             case WORD_Float.wordName -> new WORD_Float(gp, 0,0);
+            case WORD_Hot.wordName -> new WORD_Hot(gp, 0,0);
             case WORD_Is.wordName -> new WORD_Is(gp, 0,0);
             case WORD_Keke.wordName -> new WORD_Keke(gp, 0, 0);
             case WORD_Key.wordName -> new WORD_Key(gp, 0, 0);
+            case WORD_Melt.wordName -> new WORD_Melt(gp, 0,0);
             case WORD_Open.wordName -> new WORD_Open(gp, 0, 0);
             case WORD_Push.wordName -> new WORD_Push(gp, 0,0);
             case WORD_Rock.wordName -> new WORD_Rock(gp, 0,0);
