@@ -21,7 +21,7 @@ public class UI {
     private int slotCol = 0;
     private int slotRow = 0;
 
-    private int subState = 0;
+    int subState = 0;
     private int commandNum = 0;
 
     /* ASSET HANDLERS */
@@ -160,13 +160,16 @@ public class UI {
         else if (subState == 1) {
             drawEditing_Pause();
         }
+        // SAVING
         else if (subState == 2){
             drawEditing_SaveLoadDelete(true, false);
         }
+        // LOADING
         else if (subState == 3){
             drawEditing_SaveLoadDelete(false, true);
         }
-        else if (subState == 4){
+        // DELETING
+        else if (subState == 4) {
             drawEditing_SaveLoadDelete(false, false);
         }
         else if (subState == 5) {
@@ -179,7 +182,7 @@ public class UI {
         int x = gp.tileSize * 2;
         int y = gp.tileSize * 2;
         int width = (int) (gp.tileSize * 3.5);
-        int height = (int) (gp.tileSize * 5.5);
+        int height = (int) (gp.tileSize * 6.5);
         drawSubWindow(x, y, width, height);
 
         g2.setColor(Color.WHITE);
@@ -203,10 +206,25 @@ public class UI {
             }
         }
 
+        // UPLOAD
+        y += gp.tileSize;
+        g2.drawString("Upload", x, y);
+        if (commandNum == 1) {
+            g2.drawString(">", x - 25, y);
+            if (gp.keyH.aPressed) {
+                gp.keyH.aPressed = false;
+
+                gp.isUploading = true;
+                gp.saveLoad.saveToData("temp");
+                gp.gameState = gp.playState;
+                gp.setupLevel();
+            }
+        }
+
         // SAVE
         y += gp.tileSize;
         g2.drawString("Save", x, y);
-        if (commandNum == 1) {
+        if (commandNum == 2) {
             g2.drawString(">", x - 25, y);
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
@@ -219,7 +237,7 @@ public class UI {
         // LOAD
         y += gp.tileSize;
         g2.drawString("Load", x, y);
-        if (commandNum == 2) {
+        if (commandNum == 3) {
             g2.drawString(">", x - 25, y);
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
@@ -234,7 +252,7 @@ public class UI {
         // DELETE
         y += gp.tileSize;
         g2.drawString("Delete", x, y);
-        if (commandNum == 3) {
+        if (commandNum == 4) {
             g2.drawString(">", x - 25, y);
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
@@ -249,7 +267,7 @@ public class UI {
         // NEW
         y += gp.tileSize;
         g2.drawString("New", x, y);
-        if (commandNum == 4) {
+        if (commandNum == 5) {
             g2.drawString(">", x - 25, y);
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
@@ -279,8 +297,8 @@ public class UI {
             gp.keyH.downPressed = false;
 
             commandNum++;
-            if (commandNum > 4) {
-                commandNum = 4;
+            if (commandNum > 5) {
+                commandNum = 5;
             }
         }
     }
@@ -288,10 +306,14 @@ public class UI {
 
         if (gp.saveFiles.isEmpty() && !isSaving) return;
 
+        g2.setColor(Color.WHITE);
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 32F));
+
         int x = gp.tileSize * 2;
         int y = gp.tileSize * 2;
         int width = gp.tileSize * 20;
-        int height = gp.tileSize * (gp.saveFiles.size() + 2);
+        int offset = isSaving ? 2 : 1;
+        int height = (int) ((gp.tileSize * .90) * (gp.saveFiles.size() + offset));
         drawSubWindow(x, y, width, height);
 
         x = gp.tileSize * 3;
@@ -590,24 +612,13 @@ public class UI {
         }
     }
 
-    public void editing_GetEntity() {
-        UIEntity uiEntity = entityLibrary.get(entityListIndex).get(entityIndex);
-
-        currentEntity =  gp.eGenerator.getEntity(uiEntity.getName(), uiEntity.getOri(), uiEntity.getSide());
-        if (currentEntity == null) return;
-
-        currentEntity.worldX = slotCol;
-        currentEntity.worldY = slotRow;
-
-        currentEntityList = gp.getEntityList(entityListIndex);
-    }
-
     private void drawEditing_Map() {
         editing_Map_Cursor();
         editing_Map_HUD();
 
         editing_Map_Input_A();
         editing_Map_Input_B();
+        editing_Map_Input_X();
         editing_Map_Input_Dir();
     }
     private void editing_Map_HUD() {
@@ -618,7 +629,7 @@ public class UI {
     private void drawCurrentEntity() {
         UIEntity uiEntity = entityLibrary.get(entityListIndex).get(entityIndex);
 
-        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.4f));
         g2.drawImage(uiEntity.getImage(), slotCol + 7, slotRow + 7, gp.tileSize - 14, gp.tileSize - 14, null);
         g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
     }
@@ -626,7 +637,7 @@ public class UI {
 
         // Entity currently selected, draw sprite under cursor
         if (selectedEntity != null) {
-            g2.drawImage(selectedEntity.image, slotCol, slotRow, gp.tileSize, gp.tileSize, null);
+            g2.drawImage(selectedEntity.getImage(), slotCol, slotRow, gp.tileSize, gp.tileSize, null);
             g2.drawImage(cursor_select, slotCol - 6, slotRow - 6, gp.tileSize + 13, gp.tileSize + 13, null);
         }
         else {
@@ -655,6 +666,41 @@ public class UI {
             }
         }
     }
+    private boolean editing_GrabEntity() {
+        for (Entity[] entities : gp.getAllEntities()) {
+            for (int i = 0; i < entities.length; i++) {
+                if (entities[i] == null) continue;
+
+                // Entity found at same X/Y
+                if (entities[i].getWorldX() == slotCol && entities[i].getWorldY() == slotRow) {
+
+                    // Trying to place selected entity on top of existing, not allowed
+                    if (selectedEntity != null) return true;
+
+                    // Grab new entity, remove from level
+                    selectedEntity = entities[i];
+                    selectedEntityList = entities;
+
+                    entities[i] = null;
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+    public void editing_GetEntity() {
+        UIEntity uiEntity = entityLibrary.get(entityListIndex).get(entityIndex);
+
+        currentEntity = gp.eGenerator.getEntity(uiEntity.getName(), uiEntity.getOri(), uiEntity.getSide());
+        if (currentEntity == null) return;
+
+        currentEntity.setWorldX(slotCol);
+        currentEntity.setWorldY(slotRow);
+
+        currentEntityList = gp.getEntityList(entityListIndex);
+    }
+
     private void editing_Map_Input_B() {
         if (gp.keyH.bPressed) {
             gp.keyH.bPressed = false;
@@ -665,8 +711,29 @@ public class UI {
                     if (entities[i] == null) continue;
 
                     // Entity found, delete from list
-                    if (entities[i].worldX == slotCol && entities[i].worldY == slotRow) {
+                    if (entities[i].getWorldX() == slotCol && entities[i].getWorldY() == slotRow) {
                         entities[i] = null;
+                        return;
+                    }
+                }
+            }
+        }
+    }
+    private void editing_Map_Input_X() {
+        if (gp.keyH.xPressed) {
+            gp.keyH.xPressed = false;
+
+            if (selectedEntity != null) return;
+
+            // Find entity at X/Y
+            for (Entity[] entities : gp.getAllEntities()) {
+                for (Entity e : entities) {
+                    if (e == null) continue;
+
+                    // Entity found, copy and select
+                    if (e.getWorldX() == slotCol && e.getWorldY() == slotRow) {
+                        selectedEntity = gp.eGenerator.getEntity(e.getName(), e.getOri(), e.getSide());
+                        selectedEntityList = entities;
                         return;
                     }
                 }
@@ -700,36 +767,13 @@ public class UI {
         }
     }
 
-    private boolean editing_GrabEntity() {
-        for (Entity[] entities : gp.getAllEntities()) {
-            for (int i = 0; i < entities.length; i++) {
-                if (entities[i] == null) continue;
-
-                // Entity found at same X/Y
-                if (entities[i].worldX == slotCol && entities[i].worldY == slotRow) {
-
-                    // Trying to place selected entity on top of existing, not allowed
-                    if (selectedEntity != null) return true;
-
-                    // Grab new entity, remove from level
-                    selectedEntity = entities[i];
-                    selectedEntityList = entities;
-
-                    entities[i] = null;
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
     private void editing_PlaceEntity(Entity entity, Entity[] entities) {
         for (int i = 0; i < entities.length; i++) {
             if (entities[i] == null) {
 
                 // Find the closest available spot, place entity in list
-                entity.worldX = slotCol;
-                entity.worldY = slotRow;
+                entity.setWorldX(slotCol);
+                entity.setWorldY(slotRow);
                 entities[i] = entity;
 
                 return;
@@ -740,11 +784,9 @@ public class UI {
     private void drawPlayState() {
         playing_HUD();
     }
-
     private void playing_HUD() {
         playing_Debug();
     }
-
     private void playing_Debug() {
 
         if (gp.chr[0] == null) return;
@@ -757,13 +799,13 @@ public class UI {
         g2.setFont(new Font("Arial", Font.PLAIN, 20));
 
         // Draw coordinates
-        g2.drawString("WorldX: " + gp.chr[0].worldX, x, y);
+        g2.drawString("WorldX: " + gp.chr[0].getWorldX(), x, y);
         y += lineHeight;
-        g2.drawString("WorldY: " + gp.chr[0].worldY, x, y);
+        g2.drawString("WorldY: " + gp.chr[0].getWorldX(), x, y);
         y += lineHeight;
-        g2.drawString("Column: " + gp.chr[0].worldX / gp.tileSize, x, y);
+        g2.drawString("Column: " + gp.chr[0].getWorldX() / gp.tileSize, x, y);
         y += lineHeight;
-        g2.drawString("Row: " + gp.chr[0].worldY / gp.tileSize, x, y);
+        g2.drawString("Row: " + gp.chr[0].getWorldX() / gp.tileSize, x, y);
     }
 
     private void drawKeyboard(String title, int limit) {

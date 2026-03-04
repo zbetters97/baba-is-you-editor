@@ -6,6 +6,8 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import static entity.Entity.Property.STOP;
+
 public record CollisionChecker(GamePanel gp) {
 
     /**
@@ -23,7 +25,7 @@ public record CollisionChecker(GamePanel gp) {
             for (Entity e : entities) {
                 if (e == null) continue;
 
-                if (e.worldX == next.x && e.worldY == next.y) {
+                if (e.getWorldX() == next.x && e.getWorldY() == next.y) {
                     result.add(e);
                 }
             }
@@ -49,7 +51,7 @@ public record CollisionChecker(GamePanel gp) {
             case RIGHT -> nextX = gp.tileSize;
         }
 
-        return new Point(entity.worldX + nextX, entity.worldY + nextY);
+        return new Point(entity.getWorldX() + nextX, entity.getWorldY() + nextY);
     }
 
 
@@ -66,33 +68,33 @@ public record CollisionChecker(GamePanel gp) {
         for (int i = 0; i < targets.length; i++) {
             if (targets[i] == null) continue;
 
-            entity.hitbox.x = entity.worldX;
-            entity.hitbox.y = entity.worldY;
+            entity.getHitbox().x = entity.getWorldX();
+            entity.getHitbox().y = entity.getWorldY();
 
-            targets[i].hitbox.x = targets[i].worldX;
-            targets[i].hitbox.y = targets[i].worldY;
+            targets[i].getHitbox().x = targets[i].getWorldX();
+            targets[i].getHitbox().y = targets[i].getWorldY();
 
             // Entity and target collides
-            if (entity.hitbox.intersects(targets[i].hitbox)) {
+            if (entity.getHitbox().intersects(targets[i].getHitbox())) {
                 if (targets[i] == entity) continue;
 
                 index = i;
-                if (targets[i].properties.contains(Entity.Property.STOP) || targets[i].collisionOn) {
-                    entity.collisionOn = true;
+                if (targets[i].has(STOP) || targets[i].getCollisionOn()) {
+                    entity.setCollision(true);
                 }
             }
 
-            if (isOutOfBounds(entity.hitbox.x, entity.hitbox.y)) {
-                entity.collisionOn = true;
+            if (isOutOfBounds(entity.getHitbox().x, entity.getHitbox().y)) {
+                entity.setCollision(true);
             }
 
             // Reset entity solid area
-            entity.hitbox.x = 0;
-            entity.hitbox.y = 0;
+            entity.getHitbox().x = 0;
+            entity.getHitbox().y = 0;
 
             // Reset target solid area
-            targets[i].hitbox.x = 0;
-            targets[i].hitbox.y = 0;
+            targets[i].getHitbox().x = 0;
+            targets[i].getHitbox().y = 0;
         }
 
         return index;

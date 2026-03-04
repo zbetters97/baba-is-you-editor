@@ -10,6 +10,7 @@ import java.util.*;
 
 import static application.GamePanel.Direction.*;
 import static application.GamePanel.Direction.RIGHT;
+import static entity.Entity.Property.YOU;
 
 public class GamePanel extends JPanel implements Runnable {
 
@@ -66,6 +67,7 @@ public class GamePanel extends JPanel implements Runnable {
     public Map<String, String> saveFiles = new LinkedHashMap<>();
     public String account = "steelpro43";
     public String levelPath = "levels/" + account + "/";
+    public boolean isUploading = false;
 
     /* ENTITIES */
     public Entity[] chr = new Entity[50];
@@ -198,6 +200,7 @@ public class GamePanel extends JPanel implements Runnable {
             handleMovementInput();
             checkRedo();
             checkRules();
+            checkWin();
             handleKeyPress();
         }
     }
@@ -212,7 +215,7 @@ public class GamePanel extends JPanel implements Runnable {
             for (int i = 0; i < entities.length; i++) {
                 if (entities[i] == null) continue;
 
-                if (entities[i].alive) {
+                if (entities[i].getAlive()) {
                     entities[i].update();
                 }
                 else {
@@ -258,7 +261,7 @@ public class GamePanel extends JPanel implements Runnable {
             for (Entity e : entities) {
                 if (e == null) continue;
 
-                if (e.moving || e.reversing) {
+                if (e.getMoving() || e.getReversing()) {
                     return false;
                 }
             }
@@ -282,7 +285,7 @@ public class GamePanel extends JPanel implements Runnable {
             for (Entity e : entities) {
                 if (e == null) continue;
 
-                if (e.properties.contains(Entity.Property.YOU) && e.canMove(e, direction, new LinkedHashSet<>())) {
+                if (e.has(YOU) && e.canMove(e, direction, new LinkedHashSet<>())) {
                     return true;
                 }
             }
@@ -300,7 +303,7 @@ public class GamePanel extends JPanel implements Runnable {
             if (e == null) continue;
 
             // Entity not YOU or unable to move
-            if (!e.properties.contains(Entity.Property.YOU) || !e.canMove(e, direction, moveSet)) {
+            if (!e.has(YOU) || !e.canMove(e, direction, moveSet)) {
                 continue;
             }
 
@@ -342,6 +345,18 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
 
+    private void checkWin() {
+        if (win && isUploading) {
+            win = false;
+            isUploading = false;
+
+            saveLoad.loadFromData();
+            showGrid = true;
+            gameState = editState;
+            ui.subState = 2;
+        }
+    }
+
     private void handleKeyPress() {
         if (keyH.yPressed) {
             keyH.yPressed = false;
@@ -349,6 +364,8 @@ public class GamePanel extends JPanel implements Runnable {
         }
         else if (keyH.startPressed) {
             keyH.startPressed = false;
+
+            isUploading = false;
             saveLoad.loadFromData();
             showGrid = true;
             gameState = editState;

@@ -85,19 +85,19 @@ public record SaveLoad(GamePanel gp) {
                     }
 
                     // Entity found, save data
-                    ds.names[type][i] = e.name;
-                    ds.worldX[type][i] = e.worldX;
-                    ds.worldY[type][i] = e.worldY;
+                    ds.names[type][i] = e.getName();
+                    ds.worldX[type][i] = e.getWorldX();
+                    ds.worldY[type][i] = e.getWorldY();
 
                     // Entity is a wall, save variance
                     if (e instanceof ITileEntity) {
                         if (e instanceof IT_Wall) {
-                            ds.wall_ori[type][i] = e.ori;
-                            ds.wall_side[type][i] = e.side;
+                            ds.wall_ori[type][i] = e.getOri();
+                            ds.wall_side[type][i] = e.getSide();
                         }
                         else if (e instanceof IT_Water) {
-                            ds.water_ori[type][i] = e.ori;
-                            ds.water_side[type][i] = e.side;
+                            ds.water_ori[type][i] = e.getOri();
+                            ds.water_side[type][i] = e.getSide();
                         }
                     }
                     else {
@@ -194,8 +194,8 @@ public record SaveLoad(GamePanel gp) {
 
                     if (e == null) continue;
 
-                    e.worldX = ds.worldX[type][i];
-                    e.worldY = ds.worldY[type][i];
+                    e.setWorldX(ds.worldX[type][i]);
+                    e.setWorldY(ds.worldY[type][i]);
 
                     // Assign to GamePanel entity list
                     entities[i] = e;

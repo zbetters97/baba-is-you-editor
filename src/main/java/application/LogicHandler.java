@@ -48,7 +48,7 @@ public record LogicHandler(GamePanel gp) {
             for (Entity e : entities) {
                 if (e == null) continue;
 
-                e.properties.clear();
+                e.clearProperties();
             }
         }
     }
@@ -71,12 +71,12 @@ public record LogicHandler(GamePanel gp) {
             for (Entity word : gp.words) {
                 if (word == null) continue;
 
-                int x = word.worldX / gp.tileSize;
-                int y = word.worldY / gp.tileSize;
+                int x = word.getWorldX() / gp.tileSize;
+                int y = word.getWorldY() / gp.tileSize;
 
                 // Word's X matches column, add to corresponding Y (row) in list
                 if (x == col) {
-                    colWords[y] = word.name;
+                    colWords[y] = word.getName();
                 }
             }
 
@@ -103,12 +103,12 @@ public record LogicHandler(GamePanel gp) {
             for (Entity word : gp.words) {
                 if (word == null) continue;
 
-                int x = word.worldX / gp.tileSize;
-                int y = word.worldY / gp.tileSize;
+                int x = word.getWorldX() / gp.tileSize;
+                int y = word.getWorldY() / gp.tileSize;
 
                 // Word is on same row, add to corresponding X (column) in list
                 if (y == row) {
-                    rowWords[x] = word.name;
+                    rowWords[x] = word.getName();
                 }
             }
 
@@ -182,8 +182,8 @@ public record LogicHandler(GamePanel gp) {
                 if (e == null) continue;
 
                 // If entity's name matches passed name, provide property
-                if (e.name.equals(entityName) || entityName.equals("TEXT") && e instanceof WordEntity) {
-                    e.properties.add(property);
+                if (e.getName().equals(entityName) || entityName.equals("TEXT") && e instanceof WordEntity) {
+                    e.addProperty(property);
                 }
             }
         }
@@ -202,7 +202,7 @@ public record LogicHandler(GamePanel gp) {
                 if (e == null) continue;
 
                 // If entity's name matches passed name, transform to new entity
-                if (e.name.equals(oldEntityName)) {
+                if (e.getName().equals(oldEntityName)) {
                     e.transform(newForm);
                 }
             }

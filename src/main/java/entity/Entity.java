@@ -91,34 +91,32 @@ public class Entity {
     }
 
     // Empty enum list to hold properties
-    public EnumSet<Entity.Property> properties = EnumSet.noneOf(Entity.Property.class);
+    private EnumSet<Entity.Property> properties = EnumSet.noneOf(Entity.Property.class);
 
     protected GamePanel gp;
 
     /* GENERAL ATTRIBUTES */
-    public int worldX, worldY;
-    public int previousWorldX, previousWorldY;
-    public String name;
-    public boolean alive = true;
+    protected int worldX, worldY;
+    private int previousWorldX, previousWorldY;
+    protected String name;
+    protected int ori, side;
+    private boolean alive = true;
 
     /* MOVEMENT VALUES */
-    public GamePanel.Direction direction = DOWN;
-    public int speed = 4;
-    public boolean moving = false;
-    public boolean reversing = false;
+    protected GamePanel.Direction direction = DOWN;
+    private final int speed = 4;
+    private boolean moving = false;
+    private boolean reversing = false;
 
     /* ANIMATION VALUES */
-    protected int pixelCounter = 0;
+    private int pixelCounter = 0;
 
     /* COLLISION VALUES */
-    public Rectangle hitbox = new Rectangle(0, 0, 48, 48);
-    public boolean collisionOn = false;
-
-    /* MISC VALUES */
-    public int ori, side;
+    private final Rectangle hitbox = new Rectangle(0, 0, 48, 48);
+    private boolean collisionOn = false;
 
     /* SPRITE ATTRIBUTES */
-    public BufferedImage image;
+    protected BufferedImage image;
     protected BufferedImage up1;
     protected BufferedImage up2;
     protected BufferedImage down1;
@@ -136,14 +134,14 @@ public class Entity {
      */
     public Entity(GamePanel gp) {
         this.gp = gp;
-        getImages();
+        setImages();
     }
 
     /* CHILD FUNCTIONS */
     /**
      * GET IMAGE
      */
-    protected void getImages() { }
+    protected void setImages() { }
 
     /**
      * SETUP IMAGE
@@ -167,7 +165,7 @@ public class Entity {
         return image;
     }
 
-    private boolean has(Property p) {
+    public boolean has(Property p) {
         return properties.contains(p);
     }
 
@@ -394,5 +392,80 @@ public class Entity {
         }
 
         return sprite;
+    }
+
+    public void addProperty(Property property) {
+        properties.add(property);
+    }
+    public void clearProperties() {
+        properties.clear();
+    }
+
+    public int getWorldX() {
+        return worldX;
+    }
+    public int getWorldY() {
+        return worldY;
+    }
+    public void setWorldX(int worldX) {
+        this.worldX = worldX;
+    }
+    public void setWorldY(int worldY) {
+        this.worldY = worldY;
+    }
+
+    public void setPreviousWorldX(int previousWorldX) {
+        this.previousWorldX = previousWorldX;
+    }
+    public void setPreviousWorldY(int previousWorldY) {
+        this.previousWorldY = previousWorldY;
+    }
+
+    public String getName() {
+        return name;
+    }
+    public int getOri() {
+        return ori;
+    }
+    public int getSide() {
+        return side;
+    }
+
+    public Direction getDirection() {
+        return direction;
+    }
+    public void setDirection(Direction direction) {
+        this.direction = direction;
+    }
+
+    public boolean getMoving() {
+        return moving;
+    }
+    public boolean getReversing() {
+        return reversing;
+    }
+    public void  setReversing(boolean reversing) {
+        this.reversing = reversing;
+    }
+
+    public Rectangle getHitbox() {
+        return hitbox;
+    }
+    public boolean getCollisionOn() {
+        return collisionOn;
+    }
+    public void setCollision(boolean collisionOn) {
+        this.collisionOn = collisionOn;
+    }
+
+    public boolean getAlive() {
+        return alive;
+    }
+    public void setAlive(boolean alive) {
+        this.alive = alive;
+    }
+
+    public BufferedImage getImage() {
+        return image;
     }
 }

@@ -61,12 +61,12 @@ public class StateHandler {
 
             // For each entity, create a new state at same index to hold current state
             eStates[i] = new State(
-                    entities[i].name,
-                    entities[i].worldX,
-                    entities[i].worldY,
-                    entities[i].direction,
-                    entities[i].ori,
-                    entities[i].side
+                    entities[i].getName(),
+                    entities[i].getWorldX(),
+                    entities[i].getWorldY(),
+                    entities[i].getDirection(),
+                    entities[i].getOri(),
+                    entities[i].getSide()
 
             );
         }
@@ -118,28 +118,28 @@ public class StateHandler {
 
                 // Resurrect entity using saved state
                 entities[i] = gp.eGenerator.getEntity(saved[i].name, saved[i].ori, saved[i].side);
-                entities[i].alive = true;
+                entities[i].setAlive(true);
                 revived = true;
             }
             // Entity changed since redo
-            else if (!entities[i].name.equals(saved[i].name)) {
+            else if (!entities[i].getName().equals(saved[i].name)) {
                 entities[i].transform(gp.eGenerator.getEntity(saved[i].name, saved[i].ori, saved[i].side));
             }
 
             if (entities[i] == null) continue;
 
             // Assign values to entity
-            entities[i].previousWorldX = saved[i].point.x;
-            entities[i].previousWorldY = saved[i].point.y;
-            entities[i].direction = saved[i].direction;
+            entities[i].setPreviousWorldX(saved[i].point.x);
+            entities[i].setPreviousWorldY(saved[i].point.y);
+            entities[i].setDirection(saved[i].direction);
 
             // Entity resurrected, place back at saved X/Y
             if (revived) {
-                entities[i].worldX = saved[i].point.x;
-                entities[i].worldY = saved[i].point.y;
+                entities[i].setWorldX(saved[i].point.x);
+                entities[i].setWorldY(saved[i].point.y);
             }
-            else if (entities[i].worldX != saved[i].point.x || entities[i].worldY != saved[i].point.y) {
-                entities[i].reversing = true;
+            else if (entities[i].getWorldX() != saved[i].point.x || entities[i].getWorldY() != saved[i].point.y) {
+                entities[i].setReversing(true);
             }
         }
     }
