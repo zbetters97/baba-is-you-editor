@@ -8,6 +8,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.*;
+import java.util.List;
+import java.util.function.Supplier;
 
 public class UI {
 
@@ -54,68 +56,40 @@ public class UI {
 
     private void fillEntityLibrary() {
         entityLibrary.addAll(Arrays.asList(
-                buildEntityLibraryList(
-                        "words",
-                        "WORD_BABA", "WORD_DOOR", "WORD_FLAG",
-                        "WORD_KEKE", "WORD_KEY", "WORD_ROCK", "WORD_SKULL",
-                        "WORD_TEXT", "WORD_WALL", "WORD_WATER"
-                ),
-                buildEntityLibraryList(
-                        "words",
-                        "WORD_IS", "WORD_AND", "WORD_DEFEAT", "WORD_FLOAT",
-                        "WORD_HOT", "WORD_MELT", "WORD_OPEN", "WORD_PUSH",
-                        "WORD_SHUT", "WORD_SINK", "WORD_STOP", "WORD_WIN", "WORD_YOU"
-                ),
+                buildFromFactory("words", gp.eGenerator.wordNounFactory),
+                buildFromFactory("words", gp.eGenerator.wordRuleFactory),
                 buildITilesLibraryList(),
-                buildEntityLibraryList(
-                        "objects",
-                        "DOOR", "FLAG", "KEY", "ROCK", "SKULL"
-                ),
-                buildEntityLibraryList(
-                        "characters",
-                        "BABA", "KEKE"
-                )
+                buildFromFactory("objects", gp.eGenerator.objectFactory),
+                buildFromFactory("characters", gp.eGenerator.characterFactory)
         ));
     }
-    private ArrayList<UIEntity> buildEntityLibraryList(String path, String... names) {
+    private ArrayList<UIEntity> buildFromFactory(String path, Map<String, ? extends Supplier<Entity>> factory) {
         ArrayList<UIEntity> list = new ArrayList<>();
 
-        for (String name : names) {
+        for (String name : factory.keySet()) {
             list.add(new UIEntity(name, path, gp));
         }
 
         return list;
     }
     private ArrayList<UIEntity> buildITilesLibraryList() {
-        ArrayList<UIEntity> i_tiles = new ArrayList<>();
+        ArrayList<UIEntity> iTiles = new ArrayList<>();
 
-        i_tiles.add(new UIEntity("WALL", 0, 0, "i_tiles", gp));
-        for (int i = 1; i < 3; i++) {
-            for (int c = 0; c < 3; c++) {
-                i_tiles.add(new UIEntity("WALL", i, c, "i_tiles", gp));
+        addITileVariants(iTiles, "WALL", new int[]{3, 3, 4, 5});
+        addITileVariants(iTiles, "WATER", new int[]{3, 3, 4, 4});
+
+        return iTiles;
+    }
+    private void addITileVariants(List<UIEntity> list, String name, int[] maxColsPerRow) {
+        list.add(new UIEntity(name, 0, 0, "i_tiles", gp));
+
+        for (int row = 1; row <= 4; row++) {
+            int cols = maxColsPerRow[row - 1];
+
+            for (int col = 0; col < cols; col++) {
+                list.add(new UIEntity(name, row, col, "i_tiles", gp));
             }
         }
-        for (int i = 0; i < 4; i++) {
-            i_tiles.add(new UIEntity("WALL", 3, i, "i_tiles", gp));
-        }
-        for (int i = 0; i < 5; i++) {
-            i_tiles.add(new UIEntity("WALL", 4, i, "i_tiles", gp));
-        }
-
-        i_tiles.add(new UIEntity("WATER", "i_tiles", gp));
-        for (int i = 1; i < 3; i++) {
-            for (int c = 0; c < 3; c++) {
-                i_tiles.add(new UIEntity("WATER", i, c, "i_tiles", gp));
-            }
-        }
-        for (int i = 0; i < 4; i++) {
-            i_tiles.add(new UIEntity("WATER", 3, i, "i_tiles", gp));
-        }
-        for (int i = 0; i < 4; i++) {
-            i_tiles.add(new UIEntity("WATER", 4, i, "i_tiles", gp));
-        }
-
-        return i_tiles;
     }
 
     /**

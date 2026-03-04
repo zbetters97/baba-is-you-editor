@@ -28,6 +28,7 @@ public class GamePanel extends JPanel implements Runnable {
 
     /* CONTROLS / SOUND / UI */
     public KeyHandler keyH = new KeyHandler();
+    public final EntityGenerator eGenerator = new EntityGenerator(this);
     public UI ui = new UI(this);
 
     /* SCREEN SETTINGS */
@@ -57,7 +58,6 @@ public class GamePanel extends JPanel implements Runnable {
     /* HANDLERS */
     public CollisionChecker cChecker = new CollisionChecker(this);
     public final LogicHandler lHandler = new LogicHandler(this);
-    public final EntityGenerator eGenerator = new EntityGenerator(this);
     public final StateHandler stateHandler = new StateHandler(this);
 
     public Firebase db = new Firebase(this);
