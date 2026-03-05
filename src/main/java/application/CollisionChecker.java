@@ -21,13 +21,11 @@ public record CollisionChecker(GamePanel gp) {
 
         // Get all entities at the next tile
         List<Entity> result = new ArrayList<>();
-        for (Entity[] entities : gp.getAllEntities()) {
-            for (Entity e : entities) {
-                if (e == null) continue;
+        for (Entity e : gp.entities) {
+            if (e == null) continue;
 
-                if (e.getWorldX() == next.x && e.getWorldY() == next.y) {
-                    result.add(e);
-                }
+            if (e.getWorldX() == next.x && e.getWorldY() == next.y) {
+                result.add(e);
             }
         }
 

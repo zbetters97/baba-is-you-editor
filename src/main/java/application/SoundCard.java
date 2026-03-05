@@ -168,10 +168,6 @@ public class SoundCard {
             return;
         }
 
-        // Remove any existing line listeners
-        clip.removeLineListener(event -> {
-        });
-
         // Set up a line listener to handle the looping
         clip.addLineListener(event -> {
             if (event.getType() == LineEvent.Type.STOP) {
@@ -224,6 +220,7 @@ public class SoundCard {
         }
 
         setGain(volume);
+       // setGain(-80);
     }
 
     private void setGain(float gain) {

@@ -1,7 +1,6 @@
 package data;
 
 import application.GamePanel;
-import entity.Entity;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -30,12 +29,9 @@ public class StateHandler {
      * Called by GamePanel when canSave is TRUE
      */
     public void saveState() {
-        State[] wordStateStack = saveEntityStates(gp.words);
-        State[] objStateStack = saveEntityStates(gp.obj);
-        State[] itStateStack = saveEntityStates(gp.iTiles);
-        State[] chrStateStack = saveEntityStates(gp.chr);
+        State[] entityStateStack = saveEntityStates();
 
-        undoStack.push(new UndoFrame(wordStateStack, objStateStack, itStateStack, chrStateStack));
+        undoStack.push(new UndoFrame(entityStateStack));
 
         // Keep stack under max undo limit
         while (undoStack.size() > MAX_UNDO) {
@@ -48,25 +44,24 @@ public class StateHandler {
      * Iterates over the given entity array and saves the creates an
      *  array list inside the given stack
      * Called by saveState()
-     * @param entities List of entities to save states from
      * @return Array of entity states
      */
-    private State[] saveEntityStates(Entity[] entities) {
+    private State[] saveEntityStates() {
 
         // Array same size as GamePanel entity list
-        State[] eStates = new State[entities.length];
+        State[] eStates = new State[gp.entities.length];
 
-        for (int i = 0; i < entities.length; i++) {
-            if (entities[i] == null) continue;
+        for (int i = 0; i < gp.entities.length; i++) {
+            if (gp.entities[i] == null) continue;
 
             // For each entity, create a new state at same index to hold current state
             eStates[i] = new State(
-                    entities[i].getName(),
-                    entities[i].getWorldX(),
-                    entities[i].getWorldY(),
-                    entities[i].getDirection(),
-                    entities[i].getOri(),
-                    entities[i].getSide()
+                    gp.entities[i].getName(),
+                    gp.entities[i].getWorldX(),
+                    gp.entities[i].getWorldY(),
+                    gp.entities[i].getDirection(),
+                    gp.entities[i].getOri(),
+                    gp.entities[i].getSide()
 
             );
         }
@@ -81,15 +76,9 @@ public class StateHandler {
      * Called by GamePanel when B is pressed
      */
     public void loadState() {
-
         if (undoStack.isEmpty()) return;
-
         UndoFrame frame = undoStack.pop();
-
-        loadEntityStates(frame.words(), gp.words);
-        loadEntityStates(frame.obj(), gp.obj);
-        loadEntityStates(frame.iTiles(), gp.iTiles);
-        loadEntityStates(frame.chr(), gp.chr);
+        loadEntityStates(frame.entities());
     }
 
     /**
@@ -98,48 +87,47 @@ public class StateHandler {
      *  data inside to the entities found in the given list
      * Called by loadState()
      * @param saved The stack to load the entity data from
-     * @param entities List of entities to write the data into
      */
-    private void loadEntityStates(State[] saved, Entity[] entities) {
+    private void loadEntityStates(State[] saved) {
 
         // Iterate over each entity in given list
-        for (int i = 0; i < entities.length; i++) {
+        for (int i = 0; i < gp.entities.length; i++) {
 
             // No data, entity is null, go to next
             if (saved[i] == null) {
-                entities[i] = null;
+                gp.entities[i] = null;
                 continue;
             }
 
             boolean revived = false;
 
             // Has data but entity is now null
-            if (entities[i] == null) {
+            if (gp.entities[i] == null) {
 
                 // Resurrect entity using saved state
-                entities[i] = gp.eGenerator.getEntity(saved[i].name, saved[i].ori, saved[i].side);
-                entities[i].setAlive(true);
+                gp.entities[i] = gp.eGenerator.getEntity(saved[i].name, saved[i].ori, saved[i].side);
+                gp.entities[i].setAlive(true);
                 revived = true;
             }
             // Entity changed since redo
-            else if (!entities[i].getName().equals(saved[i].name)) {
-                entities[i].transform(gp.eGenerator.getEntity(saved[i].name, saved[i].ori, saved[i].side));
+            else if (!gp.entities[i].getName().equals(saved[i].name)) {
+                gp.entities[i].transform(gp.eGenerator.getEntity(saved[i].name, saved[i].ori, saved[i].side));
             }
 
-            if (entities[i] == null) continue;
+            if (gp.entities[i] == null) continue;
 
             // Assign values to entity
-            entities[i].setPreviousWorldX(saved[i].point.x);
-            entities[i].setPreviousWorldY(saved[i].point.y);
-            entities[i].setDirection(saved[i].direction);
+            gp.entities[i].setPreviousWorldX(saved[i].point.x);
+            gp.entities[i].setPreviousWorldY(saved[i].point.y);
+            gp.entities[i].setDirection(saved[i].direction);
 
             // Entity resurrected, place back at saved X/Y
             if (revived) {
-                entities[i].setWorldX(saved[i].point.x);
-                entities[i].setWorldY(saved[i].point.y);
+                gp.entities[i].setWorldX(saved[i].point.x);
+                gp.entities[i].setWorldY(saved[i].point.y);
             }
-            else if (entities[i].getWorldX() != saved[i].point.x || entities[i].getWorldY() != saved[i].point.y) {
-                entities[i].setReversing(true);
+            else if (gp.entities[i].getWorldX() != saved[i].point.x || gp.entities[i].getWorldY() != saved[i].point.y) {
+                gp.entities[i].setReversing(true);
             }
         }
     }

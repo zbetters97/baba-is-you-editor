@@ -72,10 +72,7 @@ public class GamePanel extends JPanel implements Runnable {
     public boolean isUploading = false;
 
     /* ENTITIES */
-    public Entity[] chr = new Entity[50];
-    public Entity[] obj = new Entity[50];
-    public Entity[] words = new Entity[50];
-    public Entity[] iTiles = new Entity[100];
+    public Entity[] entities = new Entity[150];
 
     /* GENERAL VALUES */
     public boolean showGrid = true;
@@ -213,16 +210,14 @@ public class GamePanel extends JPanel implements Runnable {
      * Called by runUpdate()
      */
     private void updateEntities() {
-        for (Entity[] entities : getAllEntities()) {
-            for (int i = 0; i < entities.length; i++) {
-                if (entities[i] == null) continue;
+        for (int i = 0; i < entities.length; i++) {
+            if (entities[i] == null) continue;
 
-                if (entities[i].getAlive()) {
-                    entities[i].update();
-                }
-                else {
-                    entities[i] = null;
-                }
+            if (entities[i].getAlive()) {
+                entities[i].update();
+            }
+            else {
+                entities[i] = null;
             }
         }
     }
@@ -253,19 +248,15 @@ public class GamePanel extends JPanel implements Runnable {
             canLoad = false;
             cooldown = 0;
 
-            for (Entity[] entities : getAllEntities()) {
-                moveEntities(entities, directionPressed);
-            }
+            moveEntities(entities, directionPressed);
         }
     }
     private boolean noEntitiesMoving() {
-        for (Entity[] entities : getAllEntities()) {
-            for (Entity e : entities) {
-                if (e == null) continue;
+        for (Entity e : entities) {
+            if (e == null) continue;
 
-                if (e.getMoving() || e.getReversing()) {
-                    return false;
-                }
+            if (e.getMoving() || e.getReversing()) {
+                return false;
             }
         }
 
@@ -283,15 +274,14 @@ public class GamePanel extends JPanel implements Runnable {
         return direction;
     }
     private boolean hasMoveableEntities(Direction direction) {
-        for (Entity[] entities : getAllEntities()) {
-            for (Entity e : entities) {
-                if (e == null) continue;
+        for (Entity e : entities) {
+            if (e == null) continue;
 
-                if (e.has(YOU) && e.canMove(e, direction, new LinkedHashSet<>())) {
-                    return true;
-                }
+            if (e.has(YOU) && e.canMove(e, direction, new LinkedHashSet<>())) {
+                return true;
             }
         }
+
 
         return false;
     }
@@ -313,6 +303,7 @@ public class GamePanel extends JPanel implements Runnable {
         }
 
         // Start move for each entity that can move
+        playSE(2, 0);
         for (Entity m : moveSet) {
             m.move(direction);
         }
@@ -327,6 +318,7 @@ public class GamePanel extends JPanel implements Runnable {
     private void checkRedo() {
         if (keyH.bPressed && canLoad && noEntitiesMoving()) {
             keyH.bPressed = false;
+            playSE(2, 0);
             stateHandler.loadState();
             rulesCheck = true;
         }
@@ -374,6 +366,16 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
 
+    public int findOpenEntitySlot() {
+        for (int i = 0; i < entities.length; i++) {
+            if (entities[i] == null) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
     /**
      * DRAW TO TEMP SCREEN
      * Draws to temporary screen before drawing to front-end
@@ -419,12 +421,10 @@ public class GamePanel extends JPanel implements Runnable {
      * Called by drawToTempScreen()
      */
     private void drawEntities() {
-        for (Entity[] entities : getAllEntities()) {
-            for (Entity e : entities) {
-                if (e == null) continue;
+    for (Entity e : entities) {
+            if (e == null) continue;
 
-                e.draw(g2);
-            }
+            e.draw(g2);
         }
     }
 
@@ -465,15 +465,5 @@ public class GamePanel extends JPanel implements Runnable {
     }
     public void stopMusic() {
         music.stop();
-    }
-
-    public Entity[][] getAllEntities() {
-        return new Entity[][]{iTiles, obj, chr, words};
-    }
-    public Entity[] getEntityList(int index) {
-        if (index <= 1) return words;
-        else if (index == 2) return iTiles;
-        else if (index == 3) return obj;
-        else return chr;
     }
 }

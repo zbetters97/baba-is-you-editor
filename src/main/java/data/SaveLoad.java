@@ -2,7 +2,6 @@ package data;
 
 import application.GamePanel;
 import entity.Entity;
-import entity.ITileEntity;
 import entity.tile_interactive.IT_Wall;
 import entity.tile_interactive.IT_Water;
 
@@ -17,9 +16,7 @@ import java.util.UUID;
 public record SaveLoad(GamePanel gp) {
 
     public void resetData() {
-        for (Entity[] entities : new Entity[][]{gp.words, gp.iTiles, gp.obj, gp.chr}) {
-            Arrays.fill(entities, null);
-        }
+        Arrays.fill(gp.entities, null);
     }
 
     public void save(String levelName, String fileName) {
@@ -38,72 +35,48 @@ public record SaveLoad(GamePanel gp) {
             ds.file_date = sdf.format(new Date(System.currentTimeMillis()));
 
             // Initialize entity data lists
-            ds.names = new String[4][];
-            ds.names[0] = new String[gp.words.length];
-            ds.names[1] = new String[gp.iTiles.length];
-            ds.names[2] = new String[gp.obj.length];
-            ds.names[3] = new String[gp.chr.length];
-
-            ds.worldX = new int[4][];
-            ds.worldX[0] = new int[gp.words.length];
-            ds.worldX[1] = new int[gp.iTiles.length];
-            ds.worldX[2] = new int[gp.obj.length];
-            ds.worldX[3] = new int[gp.chr.length];
-
-            ds.worldY = new int[4][];
-            ds.worldY[0] = new int[gp.words.length];
-            ds.worldY[1] = new int[gp.iTiles.length];
-            ds.worldY[2] = new int[gp.obj.length];
-            ds.worldY[3] = new int[gp.chr.length];
+            ds.names = new String[gp.entities.length];
+            ds.worldX = new int[gp.entities.length];
+            ds.worldY = new int[gp.entities.length];
 
             // Lists to store wall/water type values
-            ds.wall_ori = new int[4][gp.iTiles.length];
-            ds.wall_side = new int[4][gp.iTiles.length];
-            ds.water_ori = new int[4][gp.iTiles.length];
-            ds.water_side = new int[4][gp.iTiles.length];
+            ds.wall_ori = new int[gp.entities.length];
+            ds.wall_side = new int[gp.entities.length];
+            ds.water_ori = new int[gp.entities.length];
+            ds.water_side = new int[gp.entities.length];
 
-            // Parse over each entity type
-            Entity[][] entityLists = {gp.words, gp.iTiles, gp.obj, gp.chr};
-            for (int type = 0; type < entityLists.length; type++) {
+            // Parse over each entity
+            for (int i = 0; i < gp.entities.length; i++) {
 
-                // Parse over each entity
-                Entity[] entities = entityLists[type];
-                for (int i = 0; i < entities.length; i++) {
+                Entity e = gp.entities[i];
 
-                    Entity e = entities[i];
+                // Entity not present
+                if (e == null) {
+                    ds.names[i] = "NULL";
+                    ds.wall_ori[i] = -1;
+                    ds.wall_side[i] = -1;
 
-                    // Entity not present
-                    if (e == null) {
-                        ds.names[type][i] = "NULL";
+                    continue;
+                }
 
-                        if (type == 1) {
-                            ds.wall_ori[type][i] = -1;
-                            ds.wall_side[type][i] = -1;
-                        }
+                // Entity found, save data
+                ds.names[i] = e.getName();
+                ds.worldX[i] = e.getWorldX();
+                ds.worldY[i] = e.getWorldY();
 
-                        continue;
-                    }
+                // Entity is a wall, save variance
+                if (e instanceof IT_Wall) {
+                    ds.wall_ori[i] = e.getOri();
+                    ds.wall_side[i] = e.getSide();
+                }
+                else if (e instanceof IT_Water) {
+                    ds.water_ori[i] = e.getOri();
+                    ds.water_side[i] = e.getSide();
+                }
 
-                    // Entity found, save data
-                    ds.names[type][i] = e.getName();
-                    ds.worldX[type][i] = e.getWorldX();
-                    ds.worldY[type][i] = e.getWorldY();
-
-                    // Entity is a wall, save variance
-                    if (e instanceof ITileEntity) {
-                        if (e instanceof IT_Wall) {
-                            ds.wall_ori[type][i] = e.getOri();
-                            ds.wall_side[type][i] = e.getSide();
-                        }
-                        else if (e instanceof IT_Water) {
-                            ds.water_ori[type][i] = e.getOri();
-                            ds.water_side[type][i] = e.getSide();
-                        }
-                    }
-                    else {
-                        ds.wall_ori[type][i] = -1;
-                        ds.wall_side[type][i] = -1;
-                    }
+                else {
+                    ds.wall_ori[i] = -1;
+                    ds.wall_side[i] = -1;
                 }
             }
 
@@ -168,39 +141,35 @@ public record SaveLoad(GamePanel gp) {
             // Load data to the DS object
             DataStorage ds = gp.levelProgress;
 
-            // Parse over each entity type
-            Entity[][] entityLists = {gp.words, gp.iTiles, gp.obj, gp.chr};
-            for (int type = 0; type < entityLists.length; type++) {
+            // Parse over each entity
+            Entity[] entities = gp.entities;
+            for (int i = 0; i < entities.length; i++) {
 
-                // Parse over each entity
-                Entity[] entities = entityLists[type];
-                for (int i = 0; i < entities.length; i++) {
+                entities[i] = null;
 
+                // Grab saved name from file
+                String name = ds.names[i];
+
+                // No data, skip
+                if ("NULL".equals(name)) {
                     entities[i] = null;
-
-                    // Grab saved name from file
-                    String name = ds.names[type][i];
-
-                    // No data, skip
-                    if ("NULL".equals(name)) {
-                        entities[i] = null;
-                        continue;
-                    }
-
-                    // Get wall/water type if Wall/Water
-                    Entity e = name.equals(IT_Wall.iName) ?
-                            gp.eGenerator.getEntity(name, ds.wall_ori[type][i], ds.wall_side[type][i]) :
-                            gp.eGenerator.getEntity(name, ds.water_ori[type][i], ds.water_side[type][i]);
-
-                    if (e == null) continue;
-
-                    e.setWorldX(ds.worldX[type][i]);
-                    e.setWorldY(ds.worldY[type][i]);
-
-                    // Assign to GamePanel entity list
-                    entities[i] = e;
+                    continue;
                 }
+
+                // Get wall/water type if Wall/Water
+                Entity e = name.equals(IT_Wall.iName) ?
+                        gp.eGenerator.getEntity(name, ds.wall_ori[i], ds.wall_side[i]) :
+                        gp.eGenerator.getEntity(name, ds.water_ori[i], ds.water_side[i]);
+
+                if (e == null) continue;
+
+                e.setWorldX(ds.worldX[i]);
+                e.setWorldY(ds.worldY[i]);
+
+                // Assign to GamePanel entity list
+                entities[i] = e;
             }
+
         }
         catch (Exception e) {
             System.out.println("Error loading level: " + e.getMessage());

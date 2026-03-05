@@ -27,6 +27,7 @@ public class EntityGenerator {
         characterFactory.put(CHR_Keke.chrName, () -> new CHR_Keke(gp, 0, 0));
 
         // Objects
+        objectFactory.put(OBJ_Box.objName, () -> new OBJ_Box(gp, 0, 0));
         objectFactory.put(OBJ_Door.objName, () -> new OBJ_Door(gp, 0, 0));
         objectFactory.put(OBJ_Flag.objName, () -> new OBJ_Flag(gp, 0, 0));
         objectFactory.put(OBJ_Key.objName, () -> new OBJ_Key(gp, 0, 0));
@@ -35,6 +36,7 @@ public class EntityGenerator {
 
         // Word nouns
         wordNounFactory.put(WORD_Baba.wordName, () -> new WORD_Baba(gp, 0, 0));
+        wordNounFactory.put(WORD_Box.wordName, () -> new WORD_Box(gp, 0, 0));
         wordNounFactory.put(WORD_Door.wordName, () -> new WORD_Door(gp, 0, 0));
         wordNounFactory.put(WORD_Flag.wordName, () -> new WORD_Flag(gp, 0, 0));
         wordNounFactory.put(WORD_Keke.wordName, () -> new WORD_Keke(gp, 0, 0));
@@ -48,6 +50,7 @@ public class EntityGenerator {
         // Word rules
         wordRuleFactory.put(WORD_Is.wordName, () -> new WORD_Is(gp, 0, 0));
         wordRuleFactory.put(WORD_And.wordName, () -> new WORD_And(gp, 0, 0));
+        wordRuleFactory.put(WORD_Has.wordName, () -> new WORD_Has(gp, 0, 0));
         wordRuleFactory.put(WORD_Defeat.wordName, () -> new WORD_Defeat(gp, 0, 0));
         wordRuleFactory.put(WORD_Float.wordName, () -> new WORD_Float(gp, 0, 0));
         wordRuleFactory.put(WORD_Hot.wordName, () -> new WORD_Hot(gp, 0, 0));
@@ -57,6 +60,7 @@ public class EntityGenerator {
         wordRuleFactory.put(WORD_Shut.wordName, () -> new WORD_Shut(gp, 0, 0));
         wordRuleFactory.put(WORD_Sink.wordName, () -> new WORD_Sink(gp, 0, 0));
         wordRuleFactory.put(WORD_Stop.wordName, () -> new WORD_Stop(gp, 0, 0));
+        wordRuleFactory.put(WORD_Weak.wordName, () -> new WORD_Weak(gp, 0, 0));
         wordRuleFactory.put(WORD_Win.wordName, () -> new WORD_Win(gp, 0, 0));
         wordRuleFactory.put(WORD_You.wordName, () -> new WORD_You(gp, 0, 0));
 

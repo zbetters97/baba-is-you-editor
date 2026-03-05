@@ -30,9 +30,7 @@ public class UI {
     private final ArrayList<ArrayList<UIEntity>> entityLibrary = new ArrayList<>();
     private int entityListIndex = 0;
     private int entityIndex = 0;
-    private Entity[] currentEntityList;
     private Entity currentEntity;
-    private Entity[] selectedEntityList;
     private Entity selectedEntity;
 
     private boolean wasYPressed = false;
@@ -103,8 +101,6 @@ public class UI {
 
         if (gp.gameState == gp.editState) {
             drawEditState();
-        } else if (gp.gameState == gp.playState) {
-            drawPlayState();
         }
     }
 
@@ -628,38 +624,36 @@ public class UI {
 
             // Entity currently grabbed, place down
             if (selectedEntity != null) {
-                editing_PlaceEntity(selectedEntity, selectedEntityList);
+                editing_PlaceEntity(selectedEntity);
                 selectedEntity = null;
-                selectedEntityList = null;
             }
             // Not currently holding entity, place down new one
             else {
                 editing_GetEntity();
-                editing_PlaceEntity(currentEntity, currentEntityList);
+                editing_PlaceEntity(currentEntity);
                 currentEntity = null;
             }
         }
     }
     private boolean editing_GrabEntity() {
-        for (Entity[] entities : gp.getAllEntities()) {
-            for (int i = 0; i < entities.length; i++) {
-                if (entities[i] == null) continue;
+        for (int i = 0; i < gp.entities.length; i++) {
+            Entity e = gp.entities[i];
+            if (e == null) continue;
 
-                // Entity found at same X/Y
-                if (entities[i].getWorldX() == slotCol && entities[i].getWorldY() == slotRow) {
+            // Entity found at same X/Y
+            if (e.getWorldX() == slotCol && e.getWorldY() == slotRow) {
 
-                    // Trying to place selected entity on top of existing, not allowed
-                    if (selectedEntity != null) return true;
+                // Trying to place selected entity on top of existing, not allowed
+                if (selectedEntity != null) return true;
 
-                    // Grab new entity, remove from level
-                    selectedEntity = entities[i];
-                    selectedEntityList = entities;
+                // Grab new entity, remove from level
+                selectedEntity = e;
 
-                    entities[i] = null;
-                    return true;
-                }
+                gp.entities[i] = null;
+                return true;
             }
         }
+
 
         return false;
     }
@@ -671,8 +665,6 @@ public class UI {
 
         currentEntity.setWorldX(slotCol);
         currentEntity.setWorldY(slotRow);
-
-        currentEntityList = gp.getEntityList(entityListIndex);
     }
 
     private void editing_Map_Input_B() {
@@ -680,17 +672,16 @@ public class UI {
             gp.keyH.bPressed = false;
 
             // Find entity at X/Y
-            for (Entity[] entities : gp.getAllEntities()) {
-                for (int i = 0; i < entities.length; i++) {
-                    if (entities[i] == null) continue;
+            for (int i = 0; i < gp.entities.length; i++) {
+                if (gp.entities[i] == null) continue;
 
-                    // Entity found, delete from list
-                    if (entities[i].getWorldX() == slotCol && entities[i].getWorldY() == slotRow) {
-                        entities[i] = null;
-                        return;
-                    }
+                // Entity found, delete from list
+                if (gp.entities[i].getWorldX() == slotCol && gp.entities[i].getWorldY() == slotRow) {
+                    gp.entities[i] = null;
+                    return;
                 }
             }
+
         }
     }
     private void editing_Map_Input_X() {
@@ -700,16 +691,13 @@ public class UI {
             if (selectedEntity != null) return;
 
             // Find entity at X/Y
-            for (Entity[] entities : gp.getAllEntities()) {
-                for (Entity e : entities) {
-                    if (e == null) continue;
+            for (Entity e : gp.entities) {
+                if (e == null) continue;
 
-                    // Entity found, copy and select
-                    if (e.getWorldX() == slotCol && e.getWorldY() == slotRow) {
-                        selectedEntity = gp.eGenerator.getEntity(e.getName(), e.getOri(), e.getSide());
-                        selectedEntityList = entities;
-                        return;
-                    }
+                // Entity found, copy and select
+                if (e.getWorldX() == slotCol && e.getWorldY() == slotRow) {
+                    selectedEntity = gp.eGenerator.getEntity(e.getName(), e.getOri(), e.getSide());
+                    return;
                 }
             }
         }
@@ -741,45 +729,14 @@ public class UI {
         }
     }
 
-    private void editing_PlaceEntity(Entity entity, Entity[] entities) {
-        for (int i = 0; i < entities.length; i++) {
-            if (entities[i] == null) {
+    private void editing_PlaceEntity(Entity entity) {
+        int index = gp.findOpenEntitySlot();
 
-                // Find the closest available spot, place entity in list
-                entity.setWorldX(slotCol);
-                entity.setWorldY(slotRow);
-                entities[i] = entity;
-
-                return;
-            }
+        if (index != -1) {
+            entity.setWorldX(slotCol);
+            entity.setWorldY(slotRow);
+            gp.entities[index] = entity;
         }
-    }
-
-    private void drawPlayState() {
-        playing_HUD();
-    }
-    private void playing_HUD() {
-        playing_Debug();
-    }
-    private void playing_Debug() {
-
-        if (gp.chr[0] == null) return;
-
-        int x = 10;
-        int y = gp.tileSize * 6;
-        int lineHeight = 20;
-
-        g2.setColor(Color.WHITE);
-        g2.setFont(new Font("Arial", Font.PLAIN, 20));
-
-        // Draw coordinates
-        g2.drawString("WorldX: " + gp.chr[0].getWorldX(), x, y);
-        y += lineHeight;
-        g2.drawString("WorldY: " + gp.chr[0].getWorldX(), x, y);
-        y += lineHeight;
-        g2.drawString("Column: " + gp.chr[0].getWorldX() / gp.tileSize, x, y);
-        y += lineHeight;
-        g2.drawString("Row: " + gp.chr[0].getWorldX() / gp.tileSize, x, y);
     }
 
     private void drawKeyboard(String title, int limit) {

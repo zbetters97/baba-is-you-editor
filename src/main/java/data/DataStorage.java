@@ -13,10 +13,10 @@ public class DataStorage implements Serializable {
     String file_date;
 
     // ENTITY DATA ARRAYS
-    String[][] names;
-    int[][] worldX, worldY;
-    int[][] wall_ori, wall_side;
-    int[][] water_ori, water_side;
+    String[] names;
+    int[] worldX, worldY;
+    int[] wall_ori, wall_side;
+    int[] water_ori, water_side;
 
     public String toString() {
         return level_name + " [" + file_date + "]";

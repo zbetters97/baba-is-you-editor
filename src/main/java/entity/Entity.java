@@ -7,10 +7,8 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.EnumSet;
+import java.util.*;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 
 import static application.GamePanel.Direction.*;
 
@@ -73,6 +71,16 @@ public class Entity {
                 return true;
             }
         },
+        WEAK {
+            @Override
+            void onTouch(Entity self, Entity other) {
+                // Both must be floating or not floating
+                if (!(other instanceof WordEntity) && ((other.has(FLOAT) && self.has(FLOAT)) || (!other.has(FLOAT) && !self.has(FLOAT)))) {
+                    self.playSE(4, 0);
+                    self.kill();
+                }
+            }
+        },
         WIN {
             @Override
             void onTouch(Entity self, Entity other) {
@@ -107,12 +115,10 @@ public class Entity {
 
     /* MOVEMENT VALUES */
     protected GamePanel.Direction direction = DOWN;
-    private final int speed = 4;
+    private final int speed = 6;
     private boolean moving = false;
     private boolean reversing = false;
-
-    /* ANIMATION VALUES */
-    private int pixelCounter = 0;
+    private final ArrayList<Entity> heldEntities = new ArrayList<>();
 
     /* COLLISION VALUES */
     private final Rectangle hitbox = new Rectangle(0, 0, 48, 48);
@@ -128,8 +134,11 @@ public class Entity {
     protected BufferedImage left2;
     protected BufferedImage right1;
     protected BufferedImage right2;
+
+    /* ANIMATION VALUES */
     protected int spriteNum = 1;
     protected int spriteCounter = 0;
+    private int pixelCounter = 0;
 
     /**
      * CONSTRUCTOR
@@ -206,7 +215,7 @@ public class Entity {
         pixelCounter += speed;
         if (pixelCounter >= gp.tileSize) {
             resetMovement();
-            checkRules();
+            checkEntities();
         }
     }
     private void moveBackwards() {
@@ -223,21 +232,16 @@ public class Entity {
         pixelCounter += speed;
         if (pixelCounter >= gp.tileSize) {
             resetMovement();
-            checkRules();
+            checkEntities();
         }
     }
 
-    private void checkRules() {
-        for (Entity[] entities : gp.getAllEntities()) {
-            checkEntities(entities);
-        }
-    }
-    private void checkEntities(Entity[] entities) {
-        int ent = gp.cChecker.checkEntity(this, entities);
+    private void checkEntities() {
+        int ent = gp.cChecker.checkEntity(this, gp.entities);
 
         if (ent != -1) {
-            onTouch(entities[ent]);
-            entities[ent].onTouch(this);
+            onTouch(gp.entities[ent]);
+            gp.entities[ent].onTouch(this);
         }
     }
     private void onTouch(Entity other) {
@@ -321,12 +325,23 @@ public class Entity {
     }
 
     public void move(GamePanel.Direction dir) {
-        playSE(2, 0);
         this.direction = dir;
         this.moving = true;
     }
     private void kill() {
         if (!alive) return;
+
+        if (!heldEntities.isEmpty()) {
+            for (Entity e : heldEntities) {
+                int index = gp.findOpenEntitySlot();
+
+                if (index != -1) {
+                    e.setWorldX(worldX);
+                    e.setWorldY(worldY);
+                    gp.entities[index] = e;
+                }
+            }
+        }
 
         alive = false;
         resetMovement();
@@ -472,6 +487,13 @@ public class Entity {
     }
     public void setAlive(boolean alive) {
         this.alive = alive;
+    }
+
+    public ArrayList<Entity> getHeldEntities() {
+        return heldEntities;
+    }
+    public void giveHeldEntity(Entity heldEntity) {
+        this.heldEntities.add(heldEntity);
     }
 
     public BufferedImage getImage() {

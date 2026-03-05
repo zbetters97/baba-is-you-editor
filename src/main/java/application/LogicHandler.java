@@ -22,6 +22,7 @@ class LogicHandler {
                     Map.entry(WORD_Sink.wordName, Property.SINK),
                     Map.entry(WORD_Stop.wordName, Property.STOP),
                     Map.entry(WORD_You.wordName, Property.YOU),
+                    Map.entry(WORD_Weak.wordName, Property.WEAK),
                     Map.entry(WORD_Win.wordName, Property.WIN)
             );
 
@@ -66,12 +67,11 @@ class LogicHandler {
      * Called by update();
      */
     private void clearProperties() {
-        for (Entity[] entities : gp.getAllEntities()) {
-            for (Entity e : entities) {
-                if (e == null) continue;
+        for (Entity e : gp.entities) {
+            if (e == null) continue;
 
-                e.clearProperties();
-            }
+            e.clearProperties();
+            e.getHeldEntities().clear();
         }
     }
 
@@ -90,15 +90,15 @@ class LogicHandler {
             Arrays.fill(colWords, "");
 
             // Loop over all pre-existing words
-            for (Entity word : gp.words) {
-                if (word == null) continue;
+            for (Entity w : gp.entities) {
+                if (!(w instanceof WordEntity)) continue;
 
-                int x = word.getWorldX() / gp.tileSize;
-                int y = word.getWorldY() / gp.tileSize;
+                int x = w.getWorldX() / gp.tileSize;
+                int y = w.getWorldY() / gp.tileSize;
 
                 // Word's X matches column, add to corresponding Y (row) in list
                 if (x == col) {
-                    colWords[y] = word.getName();
+                    colWords[y] = w.getName();
                 }
             }
 
@@ -122,15 +122,15 @@ class LogicHandler {
             Arrays.fill(rowWords, "");
 
             // Loop over all pre-existing words
-            for (Entity word : gp.words) {
-                if (word == null) continue;
+            for (Entity w : gp.entities) {
+                if (!(w instanceof WordEntity)) continue;
 
-                int x = word.getWorldX() / gp.tileSize;
-                int y = word.getWorldY() / gp.tileSize;
+                int x = w.getWorldX() / gp.tileSize;
+                int y = w.getWorldY() / gp.tileSize;
 
                 // Word is on same row, add to corresponding X (column) in list
                 if (y == row) {
-                    rowWords[x] = word.getName();
+                    rowWords[x] = w.getName();
                 }
             }
 
@@ -146,6 +146,7 @@ class LogicHandler {
      */
     private void checkRules(String[] words, Set<String> rules) {
 
+        String verb;
         int i = 0;
         while (i < words.length - 2) {
 
@@ -155,10 +156,18 @@ class LogicHandler {
             while (k < words.length) {
 
                 String subj = words[k].replace("WORD_", "");
-                if (!subj.isEmpty()) subjects.add(subj);
+                if (!subj.isEmpty()
+                        && !words[k].equals(WORD_Is.wordName)
+                        && !words[k].equals(WORD_And.wordName)
+                        && !words[k].equals(WORD_Has.wordName)) {
+                    subjects.add(subj);
+                }
+
+                if (k + 1 >= words.length) break;
 
                 // Break if next word is IS
-                if (k + 1 >= words.length || words[k + 1].equals(WORD_Is.wordName)) break;
+                verb = words[k + 1];
+                if (k + 1 >= words.length || verb.equals(WORD_Is.wordName) || verb.equals(WORD_Has.wordName)) break;
 
                 // Break if next word is not AND
                 if (!words[k + 1].equals(WORD_And.wordName)) break;
@@ -166,8 +175,14 @@ class LogicHandler {
                 k += 2;
             }
 
-            // Continue if IS is after subject(s)
-            if (k + 1 >= words.length || !words[k + 1].equals(WORD_Is.wordName)) {
+            if (k + 1 >= words.length) {
+                i = k + 1;
+                continue;
+            }
+
+            // Continue if IS or HAS is after subject(s)
+            verb = words[k + 1];
+            if (k + 1 >= words.length || !verb.equals(WORD_Is.wordName) && !verb.equals(WORD_Has.wordName)) {
                 i = k + 1;
                 continue;
             }
@@ -187,15 +202,19 @@ class LogicHandler {
                 if (property != null || newForm != null) {
 
                     // Apply rule for all subjects
-                    for (String subj : subjects) {
-                        String ruleString = subj + " IS " + predicate;
+                    for (String subject : subjects) {
+
+                        String ruleString = subject + " " + verb + " " + predicate;
                         rules.add(ruleString);
 
-                        if (property != null) {
-                            applyPropertyRule(subj, property);
+                        if (verb.equals(WORD_Has.wordName) && newForm != null) {
+                            applyHasRule(subject, newForm);
+                        }
+                        else if (property != null) {
+                            applyPropertyRule(subject, property);
                         }
                         else {
-                            applyTransformationRule(subj, newForm);
+                            applyTransformationRule(subject, newForm);
                         }
                     }
                 }
@@ -206,7 +225,18 @@ class LogicHandler {
             }
 
             // Move past this rule chain
-            i = j + 1;
+            i++;
+        }
+    }
+
+    private void applyHasRule(String entityName, Entity form) {
+        for (Entity e : gp.entities) {
+            if (e == null) continue;
+
+            // If entity's name matches passed name, provide property
+            if (e.getName().equals(entityName)) {
+                e.giveHeldEntity(form);
+            }
         }
     }
 
@@ -219,14 +249,12 @@ class LogicHandler {
      * @param property The property the object will be receiving
      */
     private void applyPropertyRule(String entityName, Entity.Property property) {
-        for (Entity[] entities : gp.getAllEntities()) {
-            for (Entity e : entities) {
-                if (e == null) continue;
+        for (Entity e : gp.entities) {
+            if (e == null) continue;
 
-                // If entity's name matches passed name, provide property
-                if (e.getName().equals(entityName) || entityName.equals("TEXT") && e instanceof WordEntity) {
-                    e.addProperty(property);
-                }
+            // If entity's name matches passed name, provide property
+            if (e.getName().equals(entityName) || entityName.equals("TEXT") && e instanceof WordEntity) {
+                e.addProperty(property);
             }
         }
     }
@@ -239,14 +267,15 @@ class LogicHandler {
      * @param newForm The new entity to form into
      */
     private void applyTransformationRule(String oldEntityName, Entity newForm) {
-        for (Entity[] entities : gp.getAllEntities()) {
-            for (Entity e : entities) {
-                if (e == null) continue;
 
-                // If entity's name matches passed name, transform to new entity
-                if (e.getName().equals(oldEntityName)) {
-                    e.transform(newForm);
-                }
+        if (newForm.getName().equals(oldEntityName)) return;
+
+        for (Entity e : gp.entities) {
+            if (e == null) continue;
+
+            // If entity's name matches passed name, transform to new entity
+            if (e.getName().equals(oldEntityName)) {
+                e.transform(newForm);
             }
         }
     }

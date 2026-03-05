@@ -36,7 +36,6 @@ public record Firebase(GamePanel gp) {
 
             // Boot up storage app
             FirebaseApp.initializeApp(options);
-
             return true;
         }
         catch (Exception e) {
