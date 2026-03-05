@@ -5,10 +5,9 @@ import entity.Entity.Property;
 import entity.WordEntity;
 import entity.word.*;
 
-import java.util.Arrays;
-import java.util.Map;
+import java.util.*;
 
-public record LogicHandler(GamePanel gp) {
+class LogicHandler {
 
     // Words mapped to a property
     private static final Map<String, Entity.Property> PROPERTY_MAP =
@@ -26,15 +25,38 @@ public record LogicHandler(GamePanel gp) {
                     Map.entry(WORD_Win.wordName, Property.WIN)
             );
 
+    private final GamePanel gp;
+    private boolean rulesInitialized = false;
+    private Set<String> activeRules = new HashSet<>();
+
+    public LogicHandler(GamePanel gp) {
+        this.gp = gp;
+    }
+
     /**
      * UPDATE
      * Runs the methods in LogicHandler
      * Called by GamePanel
      */
     public void scanForRules() {
+        Set<String> newRules = new HashSet<>();
+
         clearProperties();
-        scanColumnRules();
-        scanRowRules();
+        scanColumnRules(newRules);
+        scanRowRules(newRules);
+
+        // Play sound if new rule was created
+        if (rulesInitialized) {
+            for (String rule : newRules) {
+                if (!activeRules.contains(rule)) {
+                    gp.playSE(3, 0);
+                    break;
+                }
+            }
+        }
+
+        activeRules = newRules;
+        rulesInitialized = true;
     }
 
     /**
@@ -58,7 +80,7 @@ public record LogicHandler(GamePanel gp) {
      * Scans each column to find valid rules
      * Called by update()
      */
-    private void scanColumnRules() {
+    private void scanColumnRules(Set<String> rules) {
 
         // Loop over each column (horizontally)
         for (int col = 0; col < gp.maxWorldCol; col++) {
@@ -81,7 +103,7 @@ public record LogicHandler(GamePanel gp) {
             }
 
             // Check if any rules are active
-            checkRules(colWords);
+            checkRules(colWords, rules);
         }
     }
 
@@ -90,7 +112,7 @@ public record LogicHandler(GamePanel gp) {
      * Scans each row to find valid rules
      * Called by update()
      */
-    private void scanRowRules() {
+    private void scanRowRules(Set<String> rules) {
 
         // Loop over each row (vertically)
         for (int row = 0; row < gp.maxWorldRow; row++) {
@@ -113,7 +135,7 @@ public record LogicHandler(GamePanel gp) {
             }
 
             // Check if any rules are active
-            checkRules(rowWords);
+            checkRules(rowWords, rules);
         }
     }
 
@@ -122,49 +144,69 @@ public record LogicHandler(GamePanel gp) {
      * Parses through given array string and assigns properties where applicable
      * @param words Array of words to parse through
      */
-    private void checkRules(String[] words) {
+    private void checkRules(String[] words, Set<String> rules) {
 
-        // Stop at (length - 2) to count 3 consecutive words (0, 1, 2)
-        for (int i = 0; i < words.length - 2; i++) {
+        int i = 0;
+        while (i < words.length - 2) {
 
-            // Object receiving the property (ex: FLAG)
-            String subject = words[i].replace("WORD_", "");
+            // Collect all Subjects before IS
+            List<String> subjects = new ArrayList<>();
+            int k = i;
+            while (k < words.length) {
 
-            // Linking verb (ex: IS)
-            String verb = words[i + 1];
+                String subj = words[k].replace("WORD_", "");
+                if (!subj.isEmpty()) subjects.add(subj);
 
-            // Does not equal a rule
-            if (subject.isEmpty() || !verb.equals(WORD_Is.wordName)) {
+                // Break if next word is IS
+                if (k + 1 >= words.length || words[k + 1].equals(WORD_Is.wordName)) break;
+
+                // Break if next word is not AND
+                if (!words[k + 1].equals(WORD_And.wordName)) break;
+
+                k += 2;
+            }
+
+            // Continue if IS is after subject(s)
+            if (k + 1 >= words.length || !words[k + 1].equals(WORD_Is.wordName)) {
+                i = k + 1;
                 continue;
             }
 
-            int j = i + 2;
+            // Collect all predicates after IS
+            int j = k + 2;
             while (j < words.length) {
-
-                // The action applied to the object (ex: WIN)
                 String predicate = words[j];
 
-                // Matching property to the predicate
+                // Potential new rule to apply
                 Entity.Property property = PROPERTY_MAP.get(predicate);
-                if (property != null) {
-                    applyPropertyRule(subject, property);
-                }
-                else {
-                    Entity newForm = gp.eGenerator.getEntity(predicate.replace("WORD_", ""), 0, 0);
-                    if (newForm != null) {
-                        applyTransformationRule(subject, newForm);
+
+                // Potential new form to apply
+                Entity newForm = gp.eGenerator.getEntity(predicate.replace("WORD_", ""), 0, 0);
+
+                // Rule found
+                if (property != null || newForm != null) {
+
+                    // Apply rule for all subjects
+                    for (String subj : subjects) {
+                        String ruleString = subj + " IS " + predicate;
+                        rules.add(ruleString);
+
+                        if (property != null) {
+                            applyPropertyRule(subj, property);
+                        }
+                        else {
+                            applyTransformationRule(subj, newForm);
+                        }
                     }
                 }
 
-                // Break out of loop if no AND found to link another rule
-                if (j + 1 >= words.length || !words[j + 1].equals(WORD_And.wordName)) {
-                    break;
-                }
-
+                // Break if next word is not AND
+                if (j + 1 >= words.length || !words[j + 1].equals(WORD_And.wordName)) break;
                 j += 2;
             }
 
-            i = j - 1;
+            // Move past this rule chain
+            i = j + 1;
         }
     }
 

@@ -15,8 +15,10 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.google.firebase:firebase-admin:9.2.0'
+    implementation 'com.google.firebase:firebase-admin:9.4.1'
     implementation 'org.slf4j:slf4j-simple:2.0.9'
+    implementation 'com.google.guava:guava:33.0.0-jre'
+    implementation platform('io.netty:netty-bom:4.1.115.Final')
 }
 
 java {

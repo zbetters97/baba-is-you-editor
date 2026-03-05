@@ -24,19 +24,21 @@ public class GamePanel extends JPanel implements Runnable {
     /* GENERAL CONFIG */
     private Graphics2D g2;
     private Thread gameThread;
-    public static UtilityTool utility = new UtilityTool();
 
-    /* CONTROLS / SOUND / UI */
+    /* UTILITIES / UI */
+    public static UtilityTool utility = new UtilityTool();
     public KeyHandler keyH = new KeyHandler();
     public final EntityGenerator eGenerator = new EntityGenerator(this);
-    public UI ui = new UI(this);
+    private final SoundCard music = new SoundCard();
+    private final SoundCard se = new SoundCard();
+    private final UI ui = new UI(this);
 
     /* SCREEN SETTINGS */
     private final int originalTileSize = 16; // 16x16 tile
     private final int scale = 3; // scale rate to accommodate for large screen
     public final int tileSize = originalTileSize * scale; // scaled tile (16*3 = 48px)
-    public final int maxScreenCol = 33; // columns (width)
-    public final int maxScreenRow = 18; // rows (height)
+    private final int maxScreenCol = 33; // columns (width)
+    private final int maxScreenRow = 18; // rows (height)
     public final int screenWidth = tileSize * maxScreenCol; // screen width (33 x 48: 1584px)
     public final int screenHeight = tileSize * maxScreenRow; // screen height (18 x 48: 864px)
 
@@ -57,8 +59,8 @@ public class GamePanel extends JPanel implements Runnable {
 
     /* HANDLERS */
     public CollisionChecker cChecker = new CollisionChecker(this);
-    public final LogicHandler lHandler = new LogicHandler(this);
-    public final StateHandler stateHandler = new StateHandler(this);
+    private final LogicHandler lHandler = new LogicHandler(this);
+    private final StateHandler stateHandler = new StateHandler(this);
 
     public Firebase db = new Firebase(this);
     public boolean dbConnected = false;
@@ -115,7 +117,7 @@ public class GamePanel extends JPanel implements Runnable {
         }
 
         gameState = editState;
-        setupLevel();
+        playMusic(0, 0);
 
         if (fullScreenOn) {
             setFullScreen();
@@ -443,16 +445,31 @@ public class GamePanel extends JPanel implements Runnable {
      * Called by KeyHandler
      */
     public void setupLevel() {
+        stopMusic();
         win = false;
         stateHandler.clearData();
         lHandler.scanForRules();
         ui.editing_GetEntity();
+        playMusic(0, 1);
+    }
+
+    public void playSE(int category, int record) {
+        se.setFile(category, record);
+        se.play();
+    }
+
+    public void playMusic(int category, int record) {
+        int loopStart = music.getLoopStart(category, record);
+        music.setFile(category, record);
+        music.loop(loopStart);
+    }
+    public void stopMusic() {
+        music.stop();
     }
 
     public Entity[][] getAllEntities() {
         return new Entity[][]{iTiles, obj, chr, words};
     }
-
     public Entity[] getEntityList(int index) {
         if (index <= 1) return words;
         else if (index == 2) return iTiles;

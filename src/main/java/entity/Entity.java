@@ -38,6 +38,7 @@ public class Entity {
             @Override
             void onTouch(Entity self, Entity other) {
                 if (other.has(SHUT)) {
+                    self.playSE(4, 2);
                     self.kill();
                     other.kill();
                 }
@@ -60,6 +61,7 @@ public class Entity {
             void onTouch(Entity self, Entity other) {
                 // Both must be floating or not floating
                 if ((other.has(FLOAT) && self.has(FLOAT)) || (!other.has(FLOAT) && !self.has(FLOAT))) {
+                    other.playSE(4, 1);
                     self.kill();
                     other.kill();
                 }
@@ -75,6 +77,7 @@ public class Entity {
             @Override
             void onTouch(Entity self, Entity other) {
                 if (other.has(YOU)) {
+                    self.playSE(1, 1);
                     self.gp.win = true;
                 }
             }
@@ -318,6 +321,7 @@ public class Entity {
     }
 
     public void move(GamePanel.Direction dir) {
+        playSE(2, 0);
         this.direction = dir;
         this.moving = true;
     }
@@ -401,6 +405,11 @@ public class Entity {
         properties.clear();
     }
 
+    private void playSE(int category, int record) {
+        gp.playSE(category, record);
+    }
+
+    /* GETTERS AND SETTERS */
     public int getWorldX() {
         return worldX;
     }

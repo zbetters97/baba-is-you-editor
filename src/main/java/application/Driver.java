@@ -11,7 +11,7 @@ public class Driver {
      * MAIN
      * The main method of the application
      */
-    public static void main(String[] args) throws Exception {
+    static void main() {
 
         window = new JFrame();
 
