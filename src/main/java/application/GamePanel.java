@@ -1,7 +1,7 @@
 package application;
 
 import data.*;
-import entity.Entity;
+import entity.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -402,6 +402,13 @@ public class GamePanel extends JPanel implements Runnable {
      * Called by drawToTempScreen()
      */
     private void drawEntities() {
+
+        entities.sort(Comparator.comparingInt(e ->
+                e instanceof ITileEntity ? 0 :
+                        e instanceof ObjectEntity ? 1 :
+                                e instanceof CharacterEntity ? 2 : 3
+        ));
+
         for (Entity e : entities) {
             e.draw(g2);
         }
