@@ -41,7 +41,7 @@ class LogicHandler {
     );
 
     private final GamePanel gp;
-    private boolean rulesInitialized = false;
+    public boolean rulesInitialized = false;
     private Set<String> activeRules = new HashSet<>();
     private final Map<String, List<Entity>> transformations = new HashMap<>();
 
@@ -87,7 +87,6 @@ class LogicHandler {
             e.clearProperties();
         }
 
-        activeRules.clear();
         transformations.clear();
     }
 

@@ -339,6 +339,9 @@ public class GamePanel extends JPanel implements Runnable {
             showGrid = true;
             gameState = editState;
             ui.subState = 2;
+
+            stopMusic();
+            playMusic(0, 0);
         }
     }
 
@@ -351,9 +354,13 @@ public class GamePanel extends JPanel implements Runnable {
             keyH.startPressed = false;
 
             isUploading = false;
-            saveLoad.loadFromData();
             showGrid = true;
+            lHandler.rulesInitialized = false;
+            saveLoad.loadFromData();
             gameState = editState;
+
+            stopMusic();
+            playMusic(0, 0);
         }
     }
 
