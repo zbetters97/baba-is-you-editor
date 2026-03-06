@@ -309,18 +309,11 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
 
-    /**
-     * CHECK LOAD
-     * Calls dataHandler to load entity states if B pressed
-     * Can only call redo when canLoad is TRUE and no one moving
-     * Called by update()
-     */
     private void checkRedo() {
         if (keyH.bPressed && canLoad && noEntitiesMoving()) {
             keyH.bPressed = false;
             playSE(2, 0);
             stateHandler.loadState();
-            rulesCheck = true;
         }
     }
 

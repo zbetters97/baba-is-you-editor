@@ -102,7 +102,7 @@ public class Entity {
     }
 
     // Empty enum list to hold properties
-    private EnumSet<Entity.Property> properties = EnumSet.noneOf(Entity.Property.class);
+    private final EnumSet<Entity.Property> properties = EnumSet.noneOf(Entity.Property.class);
 
     protected GamePanel gp;
 
@@ -262,7 +262,11 @@ public class Entity {
         spriteNum = 1;
         spriteCounter = 0;
         collisionOn = false;
-        gp.rulesCheck = true;
+
+        // Only check rules when Word is moved
+        if (this instanceof WordEntity) {
+            gp.rulesCheck = true;
+        }
     }
 
     /**
@@ -347,19 +351,16 @@ public class Entity {
         resetMovement();
     }
     public void transform(Entity newForm) {
-        collisionOn = false;
+        int index = gp.findOpenEntitySlot();
 
-        // Copy all attributes from new form
-        name = newForm.name;
-        properties = newForm.properties;
-        up1 = newForm.up1;
-        up2 = newForm.up2;
-        down1 = newForm.down1;
-        down2 = newForm.down2;
-        left1 = newForm.left1;
-        left2 = newForm.left2;
-        right1 = newForm.right1;
-        right2 = newForm.right2;
+        if (index != -1) {
+            newForm.setWorldX(worldX);
+            newForm.setWorldY(worldY);
+            gp.entities[index] = newForm;
+        }
+
+        alive = false;
+        resetMovement();
     }
 
     /**

@@ -10,7 +10,7 @@ public class StateHandler {
     private final GamePanel gp;
 
     // Max number of redo-s allowed
-    private final static int MAX_UNDO = 50;
+    private final static int MAX_UNDO = 75;
 
     // Stack to hold Object of entity states
     private final Deque<UndoFrame> undoStack = new ArrayDeque<>();
