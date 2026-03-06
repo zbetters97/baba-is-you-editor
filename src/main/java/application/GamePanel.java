@@ -314,6 +314,10 @@ public class GamePanel extends JPanel implements Runnable {
             keyH.bPressed = false;
             playSE(2, 0);
             stateHandler.loadState();
+
+            if (noEntitiesMoving()) {
+                rulesCheck = true;
+            }
         }
     }
 

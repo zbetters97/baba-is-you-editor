@@ -26,9 +26,24 @@ class LogicHandler {
                     Map.entry(WORD_Win.wordName, Property.WIN)
             );
 
+    private static final ArrayList<String> linkingVerbs = new ArrayList<>(
+            Arrays.asList(
+                    WORD_Is.wordName,
+                    WORD_And.wordName,
+                    WORD_Has.wordName
+            )
+    );
+    private static final ArrayList<String> connectingWords = new ArrayList<>(
+            Arrays.asList(
+                    WORD_Is.wordName,
+                    WORD_Has.wordName
+            )
+    );
+
     private final GamePanel gp;
     private boolean rulesInitialized = false;
     private Set<String> activeRules = new HashSet<>();
+    private final Map<String, List<Entity>> transformations = new HashMap<>();
 
     public LogicHandler(GamePanel gp) {
         this.gp = gp;
@@ -45,6 +60,7 @@ class LogicHandler {
         clearProperties();
         scanColumnRules(newRules);
         scanRowRules(newRules);
+        applyTransformations();
 
         // Play sound if new rule was created
         if (rulesInitialized) {
@@ -71,8 +87,10 @@ class LogicHandler {
             if (e == null) continue;
 
             e.clearProperties();
-            e.getHeldEntities().clear();
         }
+
+        activeRules.clear();
+        transformations.clear();
     }
 
     /**
@@ -146,32 +164,32 @@ class LogicHandler {
      */
     private void checkRules(String[] words, Set<String> rules) {
 
+        System.out.println("---CALLED---");
+
         String verb;
         int i = 0;
         while (i < words.length - 2) {
 
-            // Collect all Subjects before IS
+            // Collect all Subjects before connecting words (IS, HAS, AND...)
             List<String> subjects = new ArrayList<>();
             int k = i;
             while (k < words.length) {
 
-                String subj = words[k].replace("WORD_", "");
-                if (!subj.isEmpty()
-                        && !words[k].equals(WORD_Is.wordName)
-                        && !words[k].equals(WORD_And.wordName)
-                        && !words[k].equals(WORD_Has.wordName)) {
-                    subjects.add(subj);
+                String subject = words[k];
+                if (!subject.isEmpty() && !connectingWords.contains(subject)) {
+                    subjects.add(subject.replace("WORD_", ""));
                 }
 
                 if (k + 1 >= words.length) break;
 
-                // Break if next word is IS
+                // Break if next word is a linking verb
                 verb = words[k + 1];
-                if (k + 1 >= words.length || verb.equals(WORD_Is.wordName) || verb.equals(WORD_Has.wordName)) break;
+                if (k + 1 >= words.length || linkingVerbs.contains(verb)) break;
 
                 // Break if next word is not AND
                 if (!words[k + 1].equals(WORD_And.wordName)) break;
 
+                // AND continues the rule, continue to connecting set
                 k += 2;
             }
 
@@ -180,14 +198,14 @@ class LogicHandler {
                 continue;
             }
 
-            // Continue if IS or HAS is after subject(s)
+            // Continue if a linking verb is after the rule
             verb = words[k + 1];
-            if (k + 1 >= words.length || !verb.equals(WORD_Is.wordName) && !verb.equals(WORD_Has.wordName)) {
+            if (k + 1 >= words.length ||!linkingVerbs.contains(verb)) {
                 i = k + 1;
                 continue;
             }
 
-            // Collect all predicates after IS
+            // Collect all predicates after connecting words
             int j = k + 2;
             while (j < words.length) {
                 String predicate = words[j];
@@ -196,10 +214,11 @@ class LogicHandler {
                 Entity.Property property = PROPERTY_MAP.get(predicate);
 
                 // Potential new form to apply
-                Entity newForm = gp.eGenerator.getEntity(predicate.replace("WORD_", ""), 0, 0);
+                String newFormName = predicate.replace("WORD_", "");
+                Entity newForm = gp.eGenerator.getEntity(newFormName, 0, 0);
 
                 // Rule found
-                if (property != null || newForm != null) {
+                if (property != null) {
 
                     // Apply rule for all subjects
                     for (String subject : subjects) {
@@ -207,25 +226,35 @@ class LogicHandler {
                         String ruleString = subject + " " + verb + " " + predicate;
                         rules.add(ruleString);
 
-                        if (verb.equals(WORD_Has.wordName) && newForm != null) {
+                        applyPropertyRule(subject, property);
+                    }
+                }
+                else if (newForm != null) {
+
+                    // Apply rule for all subjects
+                    for (String subject : subjects) {
+
+                        String ruleString = subject + " " + verb + " " + predicate;
+                        rules.add(ruleString);
+
+                        // Rule gives held entity to subject
+                        if (verb.equals(WORD_Has.wordName)) {
                             applyHasRule(subject, newForm);
                         }
-                        else if (property != null) {
-                            applyPropertyRule(subject, property);
-                        }
-                        else {
-                            applyTransformationRule(subject, newForm);
+                        else if (verb.equals(WORD_Is.wordName)) {
+                            transformations.computeIfAbsent(subject, _ -> new ArrayList<>()).add(newForm);
                         }
                     }
                 }
 
                 // Break if next word is not AND
                 if (j + 1 >= words.length || !words[j + 1].equals(WORD_And.wordName)) break;
+
                 j += 2;
             }
 
             // Move past this rule chain
-            i++;
+            i = j;
         }
     }
 
@@ -259,24 +288,42 @@ class LogicHandler {
         }
     }
 
-    /**
-     * APPLY TRANSFORMATION RULE
-     * Runs transformation rules for all entities where applicable
-     * Called by checkRules()
-     * @param oldEntityName The name of the entity to be transformed
-     * @param newForm The new entity to form into
-     */
-    private void applyTransformationRule(String oldEntityName, Entity newForm) {
+    private void applyTransformations() {
 
-        if (newForm.getName().equals(oldEntityName)) return;
+        // Parse over each transformation rule
+        for (Map.Entry<String, List<Entity>> entry : transformations.entrySet()) {
+            String subject = entry.getKey();
 
-        for (Entity e : gp.entities) {
-            if (e == null) continue;
+            // Parse over each new form
+            for (Entity newForm : entry.getValue()) {
+                for (Entity e : gp.entities) {
+                    if (e == null) continue;
 
-            // If entity's name matches passed name, transform to new entity
-            if (e.getName().equals(oldEntityName)) {
-                e.transform(newForm);
+                    // If transforming to self, lock transformation
+                    if (e.getName().equals(subject) && e.getName().equals(newForm.getName())) {
+                        e.setTransformationLock(true);
+                    }
+                }
             }
         }
+
+        // Parse over each mapped transformation
+        for (Map.Entry<String, List<Entity>> entry : transformations.entrySet()) {
+
+            // Apply transformation rule for each assigned form to entity
+            String subject = entry.getKey();
+            for (Entity newForm : entry.getValue()) {
+                for (Entity e : gp.entities) {
+                    if (e == null) continue;
+
+                    // If entity's name matches passed name, transform to new entity
+                    if (e.getName().equals(subject) && !e.getTransformationLock()) {
+                        e.transform(newForm);
+                    }
+                }
+            }
+        }
+
+        transformations.clear();
     }
 }

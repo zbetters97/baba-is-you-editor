@@ -119,6 +119,7 @@ public class Entity {
     private boolean moving = false;
     private boolean reversing = false;
     private final ArrayList<Entity> heldEntities = new ArrayList<>();
+    private boolean lockTransformation = false;
 
     /* COLLISION VALUES */
     private final Rectangle hitbox = new Rectangle(0, 0, 48, 48);
@@ -419,6 +420,8 @@ public class Entity {
     }
     public void clearProperties() {
         properties.clear();
+        heldEntities.clear();
+        lockTransformation = false;
     }
 
     private void playSE(int category, int record) {
@@ -490,11 +493,15 @@ public class Entity {
         this.alive = alive;
     }
 
-    public ArrayList<Entity> getHeldEntities() {
-        return heldEntities;
-    }
     public void giveHeldEntity(Entity heldEntity) {
         this.heldEntities.add(heldEntity);
+    }
+
+    public boolean getTransformationLock() {
+        return lockTransformation;
+    }
+    public void setTransformationLock(boolean lockTransformation) {
+        this.lockTransformation = lockTransformation;
     }
 
     public BufferedImage getImage() {
