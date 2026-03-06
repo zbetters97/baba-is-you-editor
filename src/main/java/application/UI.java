@@ -636,9 +636,11 @@ public class UI {
         }
     }
     private boolean editing_GrabEntity() {
-        for (int i = 0; i < gp.entities.length; i++) {
-            Entity e = gp.entities[i];
-            if (e == null) continue;
+
+        Iterator<Entity> it = gp.entities.iterator();
+        while (it.hasNext()) {
+
+            Entity e = it.next();
 
             // Entity found at same X/Y
             if (e.getWorldX() == slotCol && e.getWorldY() == slotRow) {
@@ -649,11 +651,10 @@ public class UI {
                 // Grab new entity, remove from level
                 selectedEntity = e;
 
-                gp.entities[i] = null;
+                it.remove();
                 return true;
             }
         }
-
 
         return false;
     }
@@ -672,16 +673,16 @@ public class UI {
             gp.keyH.bPressed = false;
 
             // Find entity at X/Y
-            for (int i = 0; i < gp.entities.length; i++) {
-                if (gp.entities[i] == null) continue;
+            Iterator<Entity> it = gp.entities.iterator();
+            while (it.hasNext()) {
+                Entity e = it.next();
 
                 // Entity found, delete from list
-                if (gp.entities[i].getWorldX() == slotCol && gp.entities[i].getWorldY() == slotRow) {
-                    gp.entities[i] = null;
+                if (e.getWorldX() == slotCol && e.getWorldY() == slotRow) {
+                    it.remove();
                     return;
                 }
             }
-
         }
     }
     private void editing_Map_Input_X() {
@@ -692,7 +693,6 @@ public class UI {
 
             // Find entity at X/Y
             for (Entity e : gp.entities) {
-                if (e == null) continue;
 
                 // Entity found, copy and select
                 if (e.getWorldX() == slotCol && e.getWorldY() == slotRow) {
@@ -730,13 +730,9 @@ public class UI {
     }
 
     private void editing_PlaceEntity(Entity entity) {
-        int index = gp.findOpenEntitySlot();
-
-        if (index != -1) {
-            entity.setWorldX(slotCol);
-            entity.setWorldY(slotRow);
-            gp.entities[index] = entity;
-        }
+        entity.setWorldX(slotCol);
+        entity.setWorldY(slotRow);
+        gp.entities.add(entity);
     }
 
     private void drawKeyboard(String title, int limit) {

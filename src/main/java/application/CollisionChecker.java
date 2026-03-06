@@ -22,8 +22,6 @@ public record CollisionChecker(GamePanel gp) {
         // Get all entities at the next tile
         List<Entity> result = new ArrayList<>();
         for (Entity e : gp.entities) {
-            if (e == null) continue;
-
             if (e.getWorldX() == next.x && e.getWorldY() == next.y) {
                 result.add(e);
             }
@@ -60,24 +58,21 @@ public record CollisionChecker(GamePanel gp) {
      * @param targets List of entities to check collision against
      * @return Entity the given entity will interact with, -1 if none
      */
-    public int checkEntity(Entity entity, Entity[] targets) {
+    public Entity checkEntity(Entity entity, ArrayList<Entity> targets) {
 
-        int index = -1;
-        for (int i = 0; i < targets.length; i++) {
-            if (targets[i] == null) continue;
-
+        Entity target = null;
+        for (Entity t : targets) {
             entity.getHitbox().x = entity.getWorldX();
             entity.getHitbox().y = entity.getWorldY();
 
-            targets[i].getHitbox().x = targets[i].getWorldX();
-            targets[i].getHitbox().y = targets[i].getWorldY();
+            t.getHitbox().x = t.getWorldX();
+            t.getHitbox().y = t.getWorldY();
 
             // Entity and target collides
-            if (entity.getHitbox().intersects(targets[i].getHitbox())) {
-                if (targets[i] == entity) continue;
+            if (entity.getHitbox().intersects(t.getHitbox()) && entity.getId() != t.getId()) {
 
-                index = i;
-                if (targets[i].has(STOP) || targets[i].getCollisionOn()) {
+                target = t;
+                if (t.has(STOP) || t.getCollisionOn()) {
                     entity.setCollision(true);
                 }
             }
@@ -91,11 +86,11 @@ public record CollisionChecker(GamePanel gp) {
             entity.getHitbox().y = 0;
 
             // Reset target solid area
-            targets[i].getHitbox().x = 0;
-            targets[i].getHitbox().y = 0;
+            t.getHitbox().x = 0;
+            t.getHitbox().y = 0;
         }
 
-        return index;
+        return target;
     }
 
     /**

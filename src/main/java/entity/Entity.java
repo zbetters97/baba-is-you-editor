@@ -106,6 +106,9 @@ public class Entity {
 
     protected GamePanel gp;
 
+    private static int NEXT_ID = 0;
+    private final int id;
+
     /* GENERAL ATTRIBUTES */
     protected int worldX, worldY;
     private int previousWorldX, previousWorldY;
@@ -147,6 +150,7 @@ public class Entity {
      */
     public Entity(GamePanel gp) {
         this.gp = gp;
+        this.id = NEXT_ID++;
         setImages();
     }
 
@@ -238,11 +242,11 @@ public class Entity {
     }
 
     private void checkEntities() {
-        int ent = gp.cChecker.checkEntity(this, gp.entities);
+        Entity e = gp.cChecker.checkEntity(this, gp.entities);
 
-        if (ent != -1) {
-            onTouch(gp.entities[ent]);
-            gp.entities[ent].onTouch(this);
+        if (e != null) {
+            onTouch(e);
+            e.onTouch(this);
         }
     }
     private void onTouch(Entity other) {
@@ -336,29 +340,31 @@ public class Entity {
     private void kill() {
         if (!alive) return;
 
+        boolean stayAlive = false;
+
         if (!heldEntities.isEmpty()) {
             for (Entity e : heldEntities) {
-                int index = gp.findOpenEntitySlot();
-
-                if (index != -1) {
+                if (e.getName().equals(name)) {
+                    stayAlive = true;
+                }
+                else {
                     e.setWorldX(worldX);
                     e.setWorldY(worldY);
-                    gp.entities[index] = e;
+                    gp.spawnQueue.add(e);
                 }
             }
         }
+
+        if (stayAlive) return;
 
         alive = false;
         resetMovement();
     }
     public void transform(Entity newForm) {
-        int index = gp.findOpenEntitySlot();
 
-        if (index != -1) {
-            newForm.setWorldX(worldX);
-            newForm.setWorldY(worldY);
-            gp.entities[index] = newForm;
-        }
+        newForm.setWorldX(worldX);
+        newForm.setWorldY(worldY);
+        gp.spawnQueue.add(newForm);
 
         alive = false;
         resetMovement();
@@ -429,6 +435,10 @@ public class Entity {
     }
 
     /* GETTERS AND SETTERS */
+    public int getId() {
+        return id;
+    }
+
     public int getWorldX() {
         return worldX;
     }

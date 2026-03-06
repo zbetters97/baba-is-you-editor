@@ -1,5 +1,6 @@
 package data;
 
-public record UndoFrame(State[] entities) {
+import java.util.HashMap;
 
-}
+public record UndoFrame(HashMap<Integer, State> entities) {}
+

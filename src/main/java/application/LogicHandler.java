@@ -84,8 +84,6 @@ class LogicHandler {
      */
     private void clearProperties() {
         for (Entity e : gp.entities) {
-            if (e == null) continue;
-
             e.clearProperties();
         }
 
@@ -163,8 +161,6 @@ class LogicHandler {
      * @param words Array of words to parse through
      */
     private void checkRules(String[] words, Set<String> rules) {
-
-        System.out.println("---CALLED---");
 
         String verb;
         int i = 0;
@@ -260,7 +256,6 @@ class LogicHandler {
 
     private void applyHasRule(String entityName, Entity form) {
         for (Entity e : gp.entities) {
-            if (e == null) continue;
 
             // If entity's name matches passed name, provide property
             if (e.getName().equals(entityName)) {
@@ -279,7 +274,6 @@ class LogicHandler {
      */
     private void applyPropertyRule(String entityName, Entity.Property property) {
         for (Entity e : gp.entities) {
-            if (e == null) continue;
 
             // If entity's name matches passed name, provide property
             if (e.getName().equals(entityName) || entityName.equals("TEXT") && e instanceof WordEntity) {
@@ -297,7 +291,6 @@ class LogicHandler {
             // Parse over each new form
             for (Entity newForm : entry.getValue()) {
                 for (Entity e : gp.entities) {
-                    if (e == null) continue;
 
                     // If transforming to self, lock transformation
                     if (e.getName().equals(subject) && e.getName().equals(newForm.getName())) {
@@ -314,7 +307,6 @@ class LogicHandler {
             String subject = entry.getKey();
             for (Entity newForm : entry.getValue()) {
                 for (Entity e : gp.entities) {
-                    if (e == null) continue;
 
                     // If entity's name matches passed name, transform to new entity
                     if (e.getName().equals(subject) && !e.getTransformationLock()) {

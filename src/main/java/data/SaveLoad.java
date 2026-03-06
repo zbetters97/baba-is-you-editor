@@ -9,14 +9,14 @@ import java.io.*;
 import java.nio.file.Path;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.TimeZone;
 import java.util.UUID;
 
 public record SaveLoad(GamePanel gp) {
 
     public void resetData() {
-        Arrays.fill(gp.entities, null);
+        gp.entities.clear();
     }
 
     public void save(String levelName, String fileName) {
@@ -35,20 +35,22 @@ public record SaveLoad(GamePanel gp) {
             ds.file_date = sdf.format(new Date(System.currentTimeMillis()));
 
             // Initialize entity data lists
-            ds.names = new String[gp.entities.length];
-            ds.worldX = new int[gp.entities.length];
-            ds.worldY = new int[gp.entities.length];
+            int size = gp.entities.size();
+
+            ds.names = new String[size];
+            ds.worldX = new int[size];
+            ds.worldY = new int[size];
 
             // Lists to store wall/water type values
-            ds.wall_ori = new int[gp.entities.length];
-            ds.wall_side = new int[gp.entities.length];
-            ds.water_ori = new int[gp.entities.length];
-            ds.water_side = new int[gp.entities.length];
+            ds.wall_ori = new int[size];
+            ds.wall_side = new int[size];
+            ds.water_ori = new int[size];
+            ds.water_side = new int[size];
 
             // Parse over each entity
-            for (int i = 0; i < gp.entities.length; i++) {
+            for (int i = 0; i < size; i++) {
 
-                Entity e = gp.entities[i];
+                Entity e = gp.entities.get(i);
 
                 // Entity not present
                 if (e == null) {
@@ -142,17 +144,16 @@ public record SaveLoad(GamePanel gp) {
             DataStorage ds = gp.levelProgress;
 
             // Parse over each entity
-            Entity[] entities = gp.entities;
-            for (int i = 0; i < entities.length; i++) {
+            ArrayList<Entity> entities = gp.entities;
+            entities.clear();
 
-                entities[i] = null;
+            for (int i = 0; i < ds.names.length; i++) {
 
                 // Grab saved name from file
                 String name = ds.names[i];
 
                 // No data, skip
                 if ("NULL".equals(name)) {
-                    entities[i] = null;
                     continue;
                 }
 
@@ -167,7 +168,7 @@ public record SaveLoad(GamePanel gp) {
                 e.setWorldY(ds.worldY[i]);
 
                 // Assign to GamePanel entity list
-                entities[i] = e;
+                entities.add(e);
             }
 
         }
