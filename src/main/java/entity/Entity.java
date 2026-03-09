@@ -79,7 +79,7 @@ public class Entity {
         STOP {
             @Override
             boolean blocksMovement(Entity self, Entity mover, Direction dir) {
-                return true;
+                return !self.has(SHUT) || !mover.has(OPEN);
             }
         },
         WEAK {
