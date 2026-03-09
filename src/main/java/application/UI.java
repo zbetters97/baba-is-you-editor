@@ -77,19 +77,34 @@ public class UI {
             iTiles.add(new UIEntity("i_tiles", "BELT", i, 0,  gp));
         }
 
-        addITileVariants(iTiles, "WALL", new int[]{3, 3, 4, 5});
-        addITileVariants(iTiles, "WATER", new int[]{3, 3, 4, 4});
+        addWallTiles(iTiles);
+        addWaterTiles(iTiles);
 
         return iTiles;
     }
-    private void addITileVariants(List<UIEntity> list, String name, int[] maxColsPerRow) {
-        list.add(new UIEntity("i_tiles", name, 0, 0, gp));
 
+    private void addWallTiles(List<UIEntity> list) {
+        list.add(new UIEntity("i_tiles", "WALL", 0, 0, gp));
+
+        int[] maxColsPerRow = new int[]{3, 3, 4, 5};
         for (int row = 1; row <= 4; row++) {
             int cols = maxColsPerRow[row - 1];
 
             for (int col = 0; col < cols; col++) {
-                list.add(new UIEntity("i_tiles", name, row, col, gp));
+                list.add(new UIEntity("i_tiles", "WALL", row, col, gp));
+            }
+        }
+    }
+    private void addWaterTiles(List<UIEntity> list) {
+        list.add(new UIEntity("i_tiles", "WATER", 0, 0, gp));
+        list.add(new UIEntity("i_tiles", "WATER", 0, 1, gp));
+
+        int[] maxColsPerRow = new int[]{3, 3, 4, 4};
+        for (int row = 1; row <= 4; row++) {
+            int cols = maxColsPerRow[row - 1];
+
+            for (int col = 0; col < cols; col++) {
+                list.add(new UIEntity("i_tiles", "WATER", row, col, gp));
             }
         }
     }

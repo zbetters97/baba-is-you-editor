@@ -75,9 +75,12 @@ public class GamePanel extends JPanel implements Runnable {
     public ArrayList<Entity> entities = new ArrayList<>();
     public ArrayList<Entity> spawnQueue = new ArrayList<>();
 
-    public boolean showGrid = true;
     public boolean canLoad = false;
-    public boolean rulesCheck = false;
+    private boolean entitiesWereMoving = false;
+    public boolean wordMoved = false;
+    private boolean rewinding = false;
+
+    public boolean showGrid = true;
     public boolean win = false;
 
     private int cooldown = 0;
@@ -195,13 +198,47 @@ public class GamePanel extends JPanel implements Runnable {
      */
     private void update() {
         if (gameState == playState) {
-            updateEntities();
-            handleMovementInput();
-            checkRedo();
-            checkRules();
-            checkWin();
-            handleKeyPress();
+            updatePlayState();
         }
+    }
+
+    private void updatePlayState() {
+
+        // Update entities
+        updateEntities();
+
+        // Manage movement
+        handleMovementInput();
+
+        // Run redo if requested
+        handleRedoInput();
+
+        // Check if entities are currently moving
+        boolean movingNow = !noEntitiesMoving();
+
+        // Any entity was moving and then stopped
+        if (entitiesWereMoving && !movingNow) {
+
+            // Only scan rules if a word moves or redo finishes
+            if (wordMoved || rewinding) {
+                lHandler.scanForRules();
+
+                // Check for entity rules if not redo
+                if (!rewinding) {
+                    for (Entity e : entities) e.checkEntities();
+                }
+
+                // Reset flags
+                wordMoved = false;
+                rewinding = false;
+            }
+        }
+
+        // Capture if entities are currently moving
+        entitiesWereMoving = movingNow;
+
+        checkWin();
+        handleConfigInput();
     }
 
     /**
@@ -216,7 +253,6 @@ public class GamePanel extends JPanel implements Runnable {
         // Spawn new entities after update
         // Check rules if new entities spawned in
         if (!spawnQueue.isEmpty()) {
-            rulesCheck = true;
             entities.addAll(spawnQueue);
             spawnQueue.clear();
         }
@@ -303,31 +339,20 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
 
-    private void checkRedo() {
+    private void handleRedoInput() {
         if (keyH.bPressed && canLoad && noEntitiesMoving()) {
             keyH.bPressed = false;
             playSE(2, 0);
+
             stateHandler.loadState();
 
-            if (noEntitiesMoving()) {
-                rulesCheck = true;
+            // If redo moves entities back
+            rewinding = !noEntitiesMoving();
+
+            // Check rules if rewind not applied
+            if (!rewinding) {
+                lHandler.scanForRules();
             }
-        }
-    }
-
-    /**
-     * CHECK RULES
-     * Calls lHandler to check rules if rulesCheck is TRUE
-     * Called by update()
-     */
-    private void checkRules() {
-
-        // Checks rules once per update if turned on by an entity
-        // Wait until entities stop moving
-        if (rulesCheck && noEntitiesMoving()) {
-            lHandler.scanForRules();
-            rulesCheck = false;
-            for (Entity e : entities) e.checkEntities();
         }
     }
 
@@ -346,7 +371,7 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
 
-    private void handleKeyPress() {
+    private void handleConfigInput() {
         if (keyH.yPressed) {
             keyH.yPressed = false;
             showGrid = !showGrid;

@@ -250,7 +250,6 @@ public class Entity {
         pixelCounter += speed;
         if (pixelCounter >= gp.tileSize) {
             resetMovement();
-            checkEntities();
         }
     }
 
@@ -280,11 +279,6 @@ public class Entity {
         spriteNum = 1;
         spriteCounter = 0;
         collisionOn = false;
-
-        // Only check rules when Word is moved
-        if (this instanceof WordEntity) {
-            gp.rulesCheck = true;
-        }
     }
 
     /**
@@ -349,6 +343,10 @@ public class Entity {
     public void move(GamePanel.Direction dir) {
         this.direction = dir;
         this.moving = true;
+
+        if (this instanceof WordEntity) {
+            gp.wordMoved = true;
+        }
     }
     private void kill() {
         if (!alive) return;

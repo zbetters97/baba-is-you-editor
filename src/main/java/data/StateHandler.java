@@ -120,9 +120,12 @@ public class StateHandler {
                 Entity e = gp.eGenerator.getEntity(s.name, s.ori, s.side);
 
                 if (e != null) {
+                    e.setAlive(true);
+
                     e.setWorldX(s.point.x);
                     e.setWorldY(s.point.y);
-                    e.setAlive(true);
+                    e.setDirection(s.direction);
+
                     gp.entities.add(e);
                 }
             }
