@@ -14,6 +14,9 @@ public class IT_Belt extends ITileEntity {
         else if (ori == 2) direction = GamePanel.Direction.LEFT;
         else direction = GamePanel.Direction.RIGHT;
 
-
+        image = up1 = setupImage("/i_tiles/" + name.toLowerCase() + "_0_0");
+        down1 = setupImage("/i_tiles/" + name.toLowerCase() + "_1_0");
+        left1 = setupImage("/i_tiles/" + name.toLowerCase() + "_2_0");
+        right1 = setupImage("/i_tiles/" + name.toLowerCase() + "_3_0");
     }
 }

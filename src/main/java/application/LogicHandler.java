@@ -83,7 +83,7 @@ class LogicHandler {
      * WORDS never have properties
      * Called by update();
      */
-    private void clearProperties() {
+    public void clearProperties() {
         for (Entity e : gp.entities) {
             e.clearProperties();
         }

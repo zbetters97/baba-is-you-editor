@@ -19,7 +19,7 @@ public class Entity {
         DEFEAT {
             @Override
             void onTouch(Entity self, Entity other) {
-                if (self.isSameFloat(other)) {
+                if (other.has(YOU) && self.isSameFloat(other)) {
                     other.kill();
                 }
             }
@@ -53,7 +53,7 @@ public class Entity {
         SHIFT {
             @Override
             void onTouch(Entity self, Entity other) {
-                if (self.isSameFloat(other)) {
+                if (self.isSameFloat(other) && !self.has(PUSH)) {
                     other.move(self.getDirection());
                 }
             }
@@ -254,7 +254,7 @@ public class Entity {
         }
     }
 
-    private void checkEntities() {
+    public void checkEntities() {
         Entity e = gp.cChecker.checkEntity(this, gp.entities);
 
         if (e != null) {
@@ -288,7 +288,7 @@ public class Entity {
     }
 
     /**
-     * CANT MOVE
+     * CAN MOVE
      * Checks if the entity is able to move a tile
      * Called by move()
      * @param entity Entity that wants to move
@@ -338,12 +338,12 @@ public class Entity {
         }
 
         for (Property p : properties) {
-            if (!p.allowsPush()) {
-                return false;
+            if (p.allowsPush()) {
+                return true;
             }
         }
 
-        return true;
+        return false;
     }
 
     public void move(GamePanel.Direction dir) {

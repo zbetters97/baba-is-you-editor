@@ -122,6 +122,7 @@ public class StateHandler {
                 if (e != null) {
                     e.setWorldX(s.point.x);
                     e.setWorldY(s.point.y);
+                    e.setAlive(true);
                     gp.entities.add(e);
                 }
             }

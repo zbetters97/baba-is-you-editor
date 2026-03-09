@@ -327,6 +327,7 @@ public class GamePanel extends JPanel implements Runnable {
         if (rulesCheck && noEntitiesMoving()) {
             lHandler.scanForRules();
             rulesCheck = false;
+            for (Entity e : entities) e.checkEntities();
         }
     }
 
