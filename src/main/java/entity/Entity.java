@@ -19,14 +19,16 @@ public class Entity {
         DEFEAT {
             @Override
             void onTouch(Entity self, Entity other) {
-                other.kill();
+                if (self.isSameFloat(other)) {
+                    other.kill();
+                }
             }
         },
         FLOAT,
         HOT {
             @Override
             void onTouch(Entity self, Entity other) {
-                if (other.has(MELT)) {
+                if (other.has(MELT) && self.isSameFloat(other)) {
                     other.kill();
                 }
             }
@@ -48,6 +50,14 @@ public class Entity {
                 return true;
             }
         },
+        SHIFT {
+            @Override
+            void onTouch(Entity self, Entity other) {
+                if (self.isSameFloat(other)) {
+                    other.move(self.getDirection());
+                }
+            }
+        },
         SHUT {
             @Override
             boolean blocksMovement(Entity self, Entity mover, Direction dir) {
@@ -58,7 +68,7 @@ public class Entity {
             @Override
             void onTouch(Entity self, Entity other) {
                 // Both must be floating or not floating
-                if ((other.has(FLOAT) && self.has(FLOAT)) || (!other.has(FLOAT) && !self.has(FLOAT))) {
+                if (self.isSameFloat(other)) {
                     other.playSE(4, 1);
                     self.kill();
                     other.kill();
@@ -75,7 +85,7 @@ public class Entity {
             @Override
             void onTouch(Entity self, Entity other) {
                 // Both must be floating or not floating
-                if (!(other instanceof WordEntity) && ((other.has(FLOAT) && self.has(FLOAT)) || (!other.has(FLOAT) && !self.has(FLOAT)))) {
+                if (!(other instanceof WordEntity) && self.isSameFloat(other)) {
                     self.playSE(4, 0);
                     self.kill();
                 }
@@ -84,7 +94,7 @@ public class Entity {
         WIN {
             @Override
             void onTouch(Entity self, Entity other) {
-                if (other.has(YOU)) {
+                if (other.has(YOU) && self.isSameFloat(other)) {
                     self.playSE(1, 1);
                     self.gp.win = true;
                 }
@@ -184,6 +194,9 @@ public class Entity {
 
     public boolean has(Property p) {
         return properties.contains(p);
+    }
+    public boolean isSameFloat(Entity other) {
+        return ((other.has(Property.FLOAT) && has(Property.FLOAT)) || (!other.has(Property.FLOAT) && !has(Property.FLOAT)));
     }
 
     /**
@@ -325,12 +338,12 @@ public class Entity {
         }
 
         for (Property p : properties) {
-            if (p.allowsPush()) {
-                return true;
+            if (!p.allowsPush()) {
+                return false;
             }
         }
 
-        return false;
+        return true;
     }
 
     public void move(GamePanel.Direction dir) {

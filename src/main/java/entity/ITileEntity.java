@@ -7,11 +7,10 @@ public abstract class ITileEntity extends Entity {
     public ITileEntity(GamePanel gp, int col, int row, String name, int ori, int side) {
         super(gp);
 
-        this.name = name;
-
         worldX = col * gp.tileSize;
         worldY = row * gp.tileSize;
 
+        this.name = name;
         this.ori = ori;
         this.side = side;
 

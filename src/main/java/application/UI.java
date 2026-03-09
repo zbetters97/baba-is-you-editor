@@ -65,7 +65,7 @@ public class UI {
         ArrayList<UIEntity> list = new ArrayList<>();
 
         for (String name : factory.keySet()) {
-            list.add(new UIEntity(name, path, gp));
+            list.add(new UIEntity(path, name, gp));
         }
 
         return list;
@@ -73,19 +73,23 @@ public class UI {
     private ArrayList<UIEntity> buildITilesLibraryList() {
         ArrayList<UIEntity> iTiles = new ArrayList<>();
 
+        for (int i = 0; i <= 3; i++) {
+            iTiles.add(new UIEntity("i_tiles", "BELT", i, 0,  gp));
+        }
+
         addITileVariants(iTiles, "WALL", new int[]{3, 3, 4, 5});
         addITileVariants(iTiles, "WATER", new int[]{3, 3, 4, 4});
 
         return iTiles;
     }
     private void addITileVariants(List<UIEntity> list, String name, int[] maxColsPerRow) {
-        list.add(new UIEntity(name, 0, 0, "i_tiles", gp));
+        list.add(new UIEntity("i_tiles", name, 0, 0, gp));
 
         for (int row = 1; row <= 4; row++) {
             int cols = maxColsPerRow[row - 1];
 
             for (int col = 0; col < cols; col++) {
-                list.add(new UIEntity(name, row, col, "i_tiles", gp));
+                list.add(new UIEntity("i_tiles", name, row, col, gp));
             }
         }
     }

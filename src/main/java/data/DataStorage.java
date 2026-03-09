@@ -15,8 +15,8 @@ public class DataStorage implements Serializable {
     // ENTITY DATA ARRAYS
     String[] names;
     int[] worldX, worldY;
-    int[] wall_ori, wall_side;
-    int[] water_ori, water_side;
+    int[] belt_ori, wall_ori, water_ori;
+    int[] wall_side, water_side;
 
     public String toString() {
         return level_name + " [" + file_date + "]";

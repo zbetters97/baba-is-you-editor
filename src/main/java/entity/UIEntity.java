@@ -14,18 +14,18 @@ public class UIEntity {
     private final int side;
     private BufferedImage image;
 
-    public UIEntity(String name, String path, GamePanel gp) {
-        this.name = name;
-        ori = -1;
-        side = -1;
-        setupImage("/" + path + "/" + name.toLowerCase(), gp);
-    }
-
-    public UIEntity(String name, int ori, int side, String path, GamePanel gp) {
+    public UIEntity(String path, String name, int ori, int side, GamePanel gp) {
         this.name = name;
         this.ori = ori;
         this.side = side;
         setupImage("/" + path + "/" + name + "_" + ori + "_" + side, gp);
+    }
+
+    public UIEntity(String path, String name, GamePanel gp) {
+        this.name = name;
+        ori = -1;
+        side = -1;
+        setupImage("/" + path + "/" + name.toLowerCase(), gp);
     }
 
     /**

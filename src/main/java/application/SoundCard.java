@@ -220,7 +220,7 @@ public class SoundCard {
         }
 
         setGain(volume);
-       // setGain(-80);
+        setGain(-80);
     }
 
     private void setGain(float gain) {

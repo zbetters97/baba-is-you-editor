@@ -2,6 +2,7 @@ package data;
 
 import application.GamePanel;
 import entity.Entity;
+import entity.tile_interactive.IT_Belt;
 import entity.tile_interactive.IT_Wall;
 import entity.tile_interactive.IT_Water;
 
@@ -42,6 +43,7 @@ public record SaveLoad(GamePanel gp) {
             ds.worldY = new int[size];
 
             // Lists to store wall/water type values
+            ds.belt_ori = new int[size];
             ds.wall_ori = new int[size];
             ds.wall_side = new int[size];
             ds.water_ori = new int[size];
@@ -66,19 +68,24 @@ public record SaveLoad(GamePanel gp) {
                 ds.worldX[i] = e.getWorldX();
                 ds.worldY[i] = e.getWorldY();
 
-                // Entity is a wall, save variance
-                if (e instanceof IT_Wall) {
-                    ds.wall_ori[i] = e.getOri();
-                    ds.wall_side[i] = e.getSide();
-                }
-                else if (e instanceof IT_Water) {
-                    ds.water_ori[i] = e.getOri();
-                    ds.water_side[i] = e.getSide();
-                }
-
-                else {
-                    ds.wall_ori[i] = -1;
-                    ds.wall_side[i] = -1;
+                // Entity is an iTile, save variance
+                switch (e) {
+                    case IT_Belt _ -> ds.belt_ori[i] = e.getOri();
+                    case IT_Wall _ -> {
+                        ds.wall_ori[i] = e.getOri();
+                        ds.wall_side[i] = e.getSide();
+                    }
+                    case IT_Water _ -> {
+                        ds.water_ori[i] = e.getOri();
+                        ds.water_side[i] = e.getSide();
+                    }
+                    default -> {
+                        ds.belt_ori[i] = -1;
+                        ds.wall_ori[i] = -1;
+                        ds.water_ori[i] = -1;
+                        ds.wall_side[i] = -1;
+                        ds.water_side[i] = -1;
+                    }
                 }
             }
 
@@ -157,10 +164,13 @@ public record SaveLoad(GamePanel gp) {
                     continue;
                 }
 
-                // Get wall/water type if Wall/Water
-                Entity e = name.equals(IT_Wall.iName) ?
-                        gp.eGenerator.getEntity(name, ds.wall_ori[i], ds.wall_side[i]) :
-                        gp.eGenerator.getEntity(name, ds.water_ori[i], ds.water_side[i]);
+                // Get type if iTile
+                Entity e = switch (name) {
+                    case (IT_Belt.iName) -> gp.eGenerator.getEntity(name, ds.belt_ori[i], 0);
+                    case IT_Wall.iName -> gp.eGenerator.getEntity(name, ds.wall_ori[i], ds.wall_side[i]);
+                    case IT_Water.iName -> gp.eGenerator.getEntity(name, ds.water_ori[i], ds.water_side[i]);
+                    default -> gp.eGenerator.getEntity(name, -1, -1);
+                };
 
                 if (e == null) continue;
 
@@ -170,7 +180,6 @@ public record SaveLoad(GamePanel gp) {
                 // Assign to GamePanel entity list
                 entities.add(e);
             }
-
         }
         catch (Exception e) {
             System.out.println("Error loading level: " + e.getMessage());

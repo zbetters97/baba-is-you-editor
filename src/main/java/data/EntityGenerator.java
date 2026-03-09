@@ -4,6 +4,7 @@ import application.GamePanel;
 import entity.Entity;
 import entity.character.*;
 import entity.object.*;
+import entity.tile_interactive.IT_Belt;
 import entity.tile_interactive.IT_Wall;
 import entity.tile_interactive.IT_Water;
 import entity.word.*;
@@ -36,6 +37,7 @@ public class EntityGenerator {
 
         // Word nouns
         wordNounFactory.put(WORD_Baba.wordName, () -> new WORD_Baba(gp, 0, 0));
+        wordNounFactory.put(WORD_Belt.wordName, () -> new WORD_Belt(gp, 0, 0));
         wordNounFactory.put(WORD_Box.wordName, () -> new WORD_Box(gp, 0, 0));
         wordNounFactory.put(WORD_Door.wordName, () -> new WORD_Door(gp, 0, 0));
         wordNounFactory.put(WORD_Flag.wordName, () -> new WORD_Flag(gp, 0, 0));
@@ -57,6 +59,7 @@ public class EntityGenerator {
         wordRuleFactory.put(WORD_Melt.wordName, () -> new WORD_Melt(gp, 0, 0));
         wordRuleFactory.put(WORD_Open.wordName, () -> new WORD_Open(gp, 0, 0));
         wordRuleFactory.put(WORD_Push.wordName, () -> new WORD_Push(gp, 0, 0));
+        wordRuleFactory.put(WORD_Shift.wordName, () -> new WORD_Shift(gp, 0, 0));
         wordRuleFactory.put(WORD_Shut.wordName, () -> new WORD_Shut(gp, 0, 0));
         wordRuleFactory.put(WORD_Sink.wordName, () -> new WORD_Sink(gp, 0, 0));
         wordRuleFactory.put(WORD_Stop.wordName, () -> new WORD_Stop(gp, 0, 0));
@@ -65,6 +68,7 @@ public class EntityGenerator {
         wordRuleFactory.put(WORD_You.wordName, () -> new WORD_You(gp, 0, 0));
 
         // I_Tiles
+        iTileFactory.put(IT_Belt.iName, (ori, _) -> new IT_Belt(gp, 0, 0, ori));
         iTileFactory.put(IT_Wall.iName, (ori, side) -> new IT_Wall(gp, 0, 0, ori, side));
         iTileFactory.put(IT_Water.iName, (ori, side) -> new IT_Water(gp, 0, 0, ori, side));
     }

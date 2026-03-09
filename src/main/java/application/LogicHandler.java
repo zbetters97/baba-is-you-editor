@@ -18,6 +18,7 @@ class LogicHandler {
                     Map.entry(WORD_Melt.wordName, Property.MELT),
                     Map.entry(WORD_Open.wordName, Property.OPEN),
                     Map.entry(WORD_Push.wordName, Property.PUSH),
+                    Map.entry(WORD_Shift.wordName, Property.SHIFT),
                     Map.entry(WORD_Shut.wordName, Property.SHUT),
                     Map.entry(WORD_Sink.wordName, Property.SINK),
                     Map.entry(WORD_Stop.wordName, Property.STOP),
