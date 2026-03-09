@@ -20,6 +20,7 @@ public class Entity {
             @Override
             void onTouch(Entity self, Entity other) {
                 if (other.has(YOU) && self.isSameFloat(other)) {
+                    other.playSE(4, 3);
                     other.kill();
                 }
             }

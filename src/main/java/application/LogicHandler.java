@@ -30,7 +30,6 @@ class LogicHandler {
     private static final ArrayList<String> linkingVerbs = new ArrayList<>(
             Arrays.asList(
                     WORD_Is.wordName,
-                    WORD_And.wordName,
                     WORD_Has.wordName
             )
     );
