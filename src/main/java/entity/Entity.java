@@ -47,8 +47,8 @@ public class Entity {
         },
         PUSH {
             @Override
-            boolean allowsPush() {
-                return true;
+            boolean allowsPush(Entity self) {
+                return !self.has(SWAP);
             }
         },
         SHIFT {
@@ -82,6 +82,22 @@ public class Entity {
                 return !self.has(SHUT) || !mover.has(OPEN);
             }
         },
+        SWAP {
+            @Override
+            boolean blocksMovement(Entity self, Entity mover, Direction dir) {
+                int otherX = mover.getWorldX();
+                int otherY = mover.getWorldY();
+
+                mover.setPreviousWorldX(self.getWorldX());
+                mover.setPreviousWorldY(self.getWorldY());
+                mover.setReversing(true);
+
+                self.setPreviousWorldX(otherX);
+                self.setPreviousWorldY(otherY);
+                self.setReversing(true);
+                return true;
+            }
+        },
         WEAK {
             @Override
             void onTouch(Entity self, Entity other) {
@@ -107,7 +123,7 @@ public class Entity {
         boolean blocksMovement(Entity self, Entity mover, Direction dir) {
             return false;
         }
-        boolean allowsPush() {
+        boolean allowsPush(Entity self) {
             return false;
         }
     }
@@ -333,7 +349,7 @@ public class Entity {
         }
 
         for (Property p : properties) {
-            if (p.allowsPush()) {
+            if (p.allowsPush(this)) {
                 return true;
             }
         }

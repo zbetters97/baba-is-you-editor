@@ -22,6 +22,7 @@ class LogicHandler {
                     Map.entry(WORD_Shut.wordName, Property.SHUT),
                     Map.entry(WORD_Sink.wordName, Property.SINK),
                     Map.entry(WORD_Stop.wordName, Property.STOP),
+                    Map.entry(WORD_Swap.wordName, Property.SWAP),
                     Map.entry(WORD_You.wordName, Property.YOU),
                     Map.entry(WORD_Weak.wordName, Property.WEAK),
                     Map.entry(WORD_Win.wordName, Property.WIN)

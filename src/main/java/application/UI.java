@@ -23,7 +23,7 @@ public class UI {
     private int slotCol = 0;
     private int slotRow = 0;
 
-    public int subState = 5;
+    public int subState = 0;
     private int commandNum = 0;
 
     /* ASSET HANDLERS */
