@@ -95,7 +95,8 @@ public class Entity {
                 self.setPreviousWorldX(otherX);
                 self.setPreviousWorldY(otherY);
                 self.setReversing(true);
-                return true;
+
+                return false;
             }
         },
         WEAK {
@@ -274,7 +275,6 @@ public class Entity {
         Entity e = gp.cChecker.checkEntity(this, gp.entities);
 
         if (e != null) {
-            onTouch(e);
             e.onTouch(this);
         }
     }
@@ -360,10 +360,6 @@ public class Entity {
     public void move(GamePanel.Direction dir) {
         this.direction = dir;
         this.moving = true;
-
-        if (this instanceof WordEntity) {
-            gp.wordMoved = true;
-        }
     }
     private void kill() {
         if (!alive) return;

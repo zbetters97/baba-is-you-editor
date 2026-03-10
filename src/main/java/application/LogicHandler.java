@@ -34,12 +34,6 @@ class LogicHandler {
                     WORD_Has.wordName
             )
     );
-    private static final ArrayList<String> connectingWords = new ArrayList<>(
-            Arrays.asList(
-                    WORD_Is.wordName,
-                    WORD_Has.wordName
-            )
-    );
 
     private final GamePanel gp;
     public boolean rulesInitialized = false;
@@ -166,21 +160,23 @@ class LogicHandler {
         int i = 0;
         while (i < words.length - 2) {
 
-            // Collect all Subjects before connecting words (IS, HAS, AND...)
+            // Collect all subjects before connecting words (IS, HAS, AND...)
             List<String> subjects = new ArrayList<>();
             int k = i;
             while (k < words.length) {
 
                 String subject = words[k];
-                if (!subject.isEmpty() && !connectingWords.contains(subject)) {
+
+                // Subject is an actual subject
+                if (!subject.isEmpty() && !linkingVerbs.contains(subject) && !subject.equals(WORD_On.wordName)) {
                     subjects.add(subject.replace("WORD_", ""));
                 }
 
                 if (k + 1 >= words.length) break;
 
-                // Break if next word is a linking verb
+                // Break if next word is a linking verb or ON
                 verb = words[k + 1];
-                if (k + 1 >= words.length || linkingVerbs.contains(verb)) break;
+                if (linkingVerbs.contains(verb) || verb.equals(WORD_On.wordName)) break;
 
                 // Break if next word is not AND
                 if (!words[k + 1].equals(WORD_And.wordName)) break;
@@ -194,12 +190,26 @@ class LogicHandler {
                 continue;
             }
 
+            // If ON word is at play
+            String onTarget = null;
+            if (words[k + 1].equals(WORD_On.wordName)) {
+                if (k + 2 < words.length) {
+
+                    // Capture entity the subject must be ON for rule to apply
+                    onTarget = words[k + 2].replace("WORD_", "");
+
+                    // Move past ON and its target
+                    k += 2;
+                }
+            }
+
             // Continue if a linking verb is after the rule
-            verb = words[k + 1];
-            if (k + 1 >= words.length ||!linkingVerbs.contains(verb)) {
+            if (k + 1 >= words.length || !linkingVerbs.contains(words[k + 1])) {
                 i = k + 1;
                 continue;
             }
+
+            verb = words[k + 1];
 
             // Collect all predicates after connecting words
             int j = k + 2;
@@ -219,10 +229,31 @@ class LogicHandler {
                     // Apply rule for all subjects
                     for (String subject : subjects) {
 
-                        String ruleString = subject + " " + verb + " " + predicate;
-                        rules.add(ruleString);
+                        // Rule includes ON condition
+                        if (onTarget != null) {
 
-                        applyPropertyRule(subject, property);
+                            // Find subject
+                            for (Entity e : gp.entities) {
+                                if (!e.getName().equals(subject)) continue;
+
+                                // Find target
+                                for (Entity target : gp.entities) {
+                                    if (!target.getName().equals(onTarget)) continue;
+
+                                    // Subject and target are on top of each other
+                                    if (target.getWorldX() == e.getWorldX() && target.getWorldY() == e.getWorldY()) {
+                                        String ruleString = subject + " ON " + onTarget + " " + verb + " " + predicate;
+                                        rules.add(ruleString);
+                                        applyPropertyRule(subject, property);
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            String ruleString = subject + " " + verb + " " + predicate;
+                            rules.add(ruleString);
+                            applyPropertyRule(subject, property);
+                        }
                     }
                 }
                 else if (newForm != null) {
@@ -230,15 +261,44 @@ class LogicHandler {
                     // Apply rule for all subjects
                     for (String subject : subjects) {
 
-                        String ruleString = subject + " " + verb + " " + predicate;
-                        rules.add(ruleString);
+                        // Rule includes ON condition
+                        if (onTarget != null) {
 
-                        // Rule gives held entity to subject
-                        if (verb.equals(WORD_Has.wordName)) {
-                            applyHasRule(subject, newForm);
+                            // Find subject
+                            for (Entity e : gp.entities) {
+                                if (!e.getName().equals(subject)) continue;
+
+                                // Find target
+                                for (Entity target : gp.entities) {
+                                    if (!target.getName().equals(onTarget)) continue;
+
+                                    // If subject and target are on top of each other
+                                    if (target.getWorldX() == e.getWorldX() && target.getWorldY() == e.getWorldY()) {
+                                        String ruleString = subject + " ON " + onTarget + " " + verb + " " + predicate;
+                                        rules.add(ruleString);
+
+                                        // Rule gives held entity to subject
+                                        if (verb.equals(WORD_Has.wordName)) {
+                                            applyHasRule(subject, newForm);
+                                        }
+                                        else if (verb.equals(WORD_Is.wordName)) {
+                                            transformations.computeIfAbsent(subject, _ -> new ArrayList<>()).add(newForm);
+                                        }
+                                    }
+                                }
+                            }
                         }
-                        else if (verb.equals(WORD_Is.wordName)) {
-                            transformations.computeIfAbsent(subject, _ -> new ArrayList<>()).add(newForm);
+                        else {
+                            String ruleString = subject + " " + verb + " " + predicate;
+                            rules.add(ruleString);
+
+                            // Rule gives held entity to subject
+                            if (verb.equals(WORD_Has.wordName)) {
+                                applyHasRule(subject, newForm);
+                            }
+                            else if (verb.equals(WORD_Is.wordName)) {
+                                transformations.computeIfAbsent(subject, _ -> new ArrayList<>()).add(newForm);
+                            }
                         }
                     }
                 }

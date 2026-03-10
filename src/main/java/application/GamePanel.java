@@ -81,7 +81,6 @@ public class GamePanel extends JPanel implements Runnable {
 
     public boolean canLoad = false;
     private boolean entitiesWereMoving = false;
-    public boolean wordMoved = false;
     private boolean rewinding = false;
 
     public boolean showGrid = true;
@@ -224,18 +223,14 @@ public class GamePanel extends JPanel implements Runnable {
         if (entitiesWereMoving && !movingNow) {
 
             // Only scan rules if a word moves or redo finishes
-            if (wordMoved || rewinding) {
-                lHandler.scanForRules();
+            lHandler.scanForRules();
 
-                // Check for entity rules if not redo
-                if (!rewinding) {
-                    for (Entity e : entities) e.checkEntities();
-                }
-
-                // Reset flags
-                wordMoved = false;
-                rewinding = false;
+            // Check for entity rules if not redo
+            if (!rewinding) {
+                for (Entity e : entities) e.checkEntities();
             }
+
+            rewinding = false;
         }
 
         // Capture if entities are currently moving
