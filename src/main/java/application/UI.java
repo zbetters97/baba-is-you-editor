@@ -23,7 +23,7 @@ public class UI {
     private int slotCol = 0;
     private int slotRow = 0;
 
-    int subState = 0;
+    public int subState = 5;
     private int commandNum = 0;
 
     /* ASSET HANDLERS */
@@ -149,33 +149,38 @@ public class UI {
         else if (subState == 1) {
             drawEditing_Pause();
         }
-        // SAVING
+        // SAVE
         else if (subState == 2){
             drawEditing_SaveLoadDelete(true, false);
         }
-        // LOADING
+        // LOAD
         else if (subState == 3){
             drawEditing_SaveLoadDelete(false, true);
         }
-        // DELETING
+        // DELETE
         else if (subState == 4) {
             drawEditing_SaveLoadDelete(false, false);
         }
+        // CHANGE SETTINGS
         else if (subState == 5) {
+            drawEditing_Settings();
+        }
+        // CREATE NAME
+        else if (subState == 6) {
             drawEditing_SaveName();
         }
     }
 
     private void drawEditing_Pause() {
 
-        int x = gp.tileSize * 2;
-        int y = gp.tileSize * 2;
-        int width = (int) (gp.tileSize * 3.5);
-        int height = (int) (gp.tileSize * 6.5);
-        drawSubWindow(x, y, width, height);
-
         g2.setColor(Color.WHITE);
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 32F));
+
+        int x = gp.tileSize * 2;
+        int y = gp.tileSize * 2;
+        int width = gp.tileSize * 4;
+        int height = (int) (gp.tileSize * 7.5);
+        drawSubWindow(x, y, width, height);
 
         x = gp.tileSize * 3;
         y = gp.tileSize * 3;
@@ -267,6 +272,19 @@ public class UI {
             }
         }
 
+        // SETTINGS
+        y += gp.tileSize;
+        g2.drawString("Settings", x, y);
+        if (commandNum == 6) {
+            g2.drawString(">", x - 25, y);
+            if (gp.keyH.aPressed) {
+                gp.keyH.aPressed = false;
+
+                commandNum = 0;
+                subState = 5;
+            }
+        }
+
         if (gp.keyH.bPressed || gp.keyH.startPressed) {
             gp.keyH.bPressed = false;
             gp.keyH.startPressed = false;
@@ -286,8 +304,8 @@ public class UI {
             gp.keyH.downPressed = false;
 
             commandNum++;
-            if (commandNum > 5) {
-                commandNum = 5;
+            if (commandNum > 6) {
+                commandNum = 6;
             }
         }
     }
@@ -355,7 +373,7 @@ public class UI {
                 if (gp.keyH.aPressed) {
                     gp.keyH.aPressed = false;
                     commandNum = 0;
-                    subState = 5;
+                    subState = 6;
                 }
             }
         }
@@ -502,6 +520,128 @@ public class UI {
                 capital = true;
                 commandNum = 0;
                 subState = 1;
+            }
+        }
+    }
+
+    private void drawEditing_Settings() {
+
+        g2.setColor(Color.WHITE);
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 32F));
+
+        int x = gp.tileSize * 2;
+        int y = gp.tileSize * 2;
+        int width = gp.tileSize * 9;
+        int height = (int) (gp.tileSize * 3.5);
+        drawSubWindow(x, y, width, height);
+
+        x = gp.tileSize * 3;
+        y = gp.tileSize * 3;
+
+        // FULL SCREEN ON/OFF
+        g2.drawString("Full Screen", x, y);
+        if (commandNum == 0) {
+
+            g2.drawString(">", x - 25, y);
+            if (gp.keyH.aPressed) {
+                gp.keyH.aPressed = false;
+                gp.fullScreenOn = !gp.fullScreenOn;
+            }
+        }
+
+        // MUSIC VOLUME
+        y += gp.tileSize;
+        g2.drawString("Music", x, y);
+        if (commandNum == 1) {
+            g2.drawString(">", x - 25, y);
+
+            if (gp.keyH.leftPressed) {
+                gp.keyH.leftPressed = false;
+
+                if (gp.music.volumeScale > 0) {
+                    gp.music.volumeScale--;
+                    gp.music.checkVolume();
+                }
+            }
+            if (gp.keyH.rightPressed) {
+                gp.keyH.rightPressed = false;
+
+                if (gp.music.volumeScale < 5) {
+                    gp.music.volumeScale++;
+                    gp.music.checkVolume();
+                }
+            }
+        }
+
+        // SOUND EFFECTS VOLUME
+        y += gp.tileSize;
+        g2.drawString("Sound Effects", x, y);
+        if (commandNum == 2) {
+            g2.drawString(">", x - 25, y);
+
+            if (gp.keyH.leftPressed) {
+                gp.keyH.leftPressed = false;
+
+                if (gp.se.volumeScale > 0) {
+                    gp.se.volumeScale--;
+                    gp.music.checkVolume();
+                }
+            }
+            if (gp.keyH.rightPressed) {
+                gp.keyH.rightPressed = false;
+
+                if (gp.se.volumeScale < 5) {
+                    gp.se.volumeScale++;
+                    gp.music.checkVolume();
+                }
+            }
+        }
+
+        // FULL SCREEN CHECK BOX
+        x = gp.tileSize * 8;
+        y = (int) (gp.tileSize * 2.5);
+        g2.setStroke(new BasicStroke(3));
+        g2.drawRect(x, y, 24, 24);
+        if (gp.fullScreenOn) {
+            g2.fillRect(x, y, 24, 24);
+        }
+
+        // MUSIC SLIDER
+        y += gp.tileSize;
+        g2.drawRect(x, y, 120, 24); // 120/5 = 24
+        int volumeWidth = 24 * gp.music.volumeScale;
+        g2.fillRect(x, y, volumeWidth, 24);
+
+        // SOUND EFFECTS SLIDER
+        y += gp.tileSize;
+        g2.drawRect(x, y, 120, 24);
+        g2.drawRect(x, y, 120, 24); // 120/5 = 24
+        volumeWidth = 24 * gp.se.volumeScale;
+        g2.fillRect(x, y, volumeWidth, 24);
+
+        if (gp.keyH.bPressed || gp.keyH.startPressed) {
+            gp.keyH.bPressed = false;
+            gp.keyH.startPressed = false;
+
+            gp.config.saveConfig();
+            commandNum = 6;
+            subState = 1;
+        }
+
+        if (gp.keyH.upPressed) {
+            gp.keyH.upPressed = false;
+
+            commandNum--;
+            if (commandNum < 0) {
+                commandNum = 0;
+            }
+        }
+        else if (gp.keyH.downPressed) {
+            gp.keyH.downPressed = false;
+
+            commandNum++;
+            if (commandNum > 2) {
+                commandNum = 2;
             }
         }
     }

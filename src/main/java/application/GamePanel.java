@@ -6,6 +6,7 @@ import entity.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.*;
 
 import static application.GamePanel.Direction.*;
@@ -25,12 +26,15 @@ public class GamePanel extends JPanel implements Runnable {
     private Graphics2D g2;
     private Thread gameThread;
 
+    public ConfigManager config = new ConfigManager(this);
+    public File saveDir = new File(System.getProperty("user.home") + "/baba-conf/");
+
     /* UTILITIES / UI */
     public static UtilityTool utility = new UtilityTool();
     public KeyHandler keyH = new KeyHandler();
     public final EntityGenerator eGenerator = new EntityGenerator(this);
-    private final SoundCard music = new SoundCard();
-    private final SoundCard se = new SoundCard();
+    public final SoundCard music = new SoundCard();
+    public final SoundCard se = new SoundCard();
     private final UI ui = new UI(this);
 
     /* SCREEN SETTINGS */

@@ -25,6 +25,7 @@ public class Driver {
         window.add(gamePanel);
 
         // Load settings
+        gamePanel.config.loadConfig();
         if (gamePanel.fullScreenOn) {
             window.setUndecorated(true);
         }
