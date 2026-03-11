@@ -2,17 +2,17 @@ package entity;
 
 import application.GamePanel;
 
+import java.awt.*;
+
 public abstract class CharacterEntity extends Entity {
 
     public CharacterEntity(GamePanel gp, int col, int row, String name) {
         super(gp);
 
+        this.point = new Point(col * gp.tileSize, row * gp.tileSize);
+        setPreviousPoint(point);
         this.name = name;
-
-        worldX = col * gp.tileSize;
-        worldY = row * gp.tileSize;
-
-        direction = GamePanel.Direction.RIGHT;
+        this.direction = GamePanel.Direction.RIGHT;
 
         getImages(name);
     }

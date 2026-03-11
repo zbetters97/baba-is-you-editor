@@ -53,11 +53,10 @@ public class StateHandler {
         HashMap<Integer, State> states = new HashMap<>();
 
         for (Entity e : gp.entities) {
-
             states.put(e.getId(), new State(
                     e.getName(),
-                    e.getWorldX(),
-                    e.getWorldY(),
+                    e.getPoint(),
+                    e.getPreviousPoint(),
                     e.getDirection(),
                     e.getOri(),
                     e.getSide()
@@ -75,7 +74,7 @@ public class StateHandler {
      */
     public void loadState() {
         if (undoStack.isEmpty()) return;
-        
+
         UndoFrame frame = undoStack.pop();
         loadEntityStates(frame.entities());
     }
@@ -91,15 +90,16 @@ public class StateHandler {
                 continue;
             }
 
+            // Entity changed forms since last redo
             if (!e.getName().equals(s.name)) {
                 e.transform(gp.eGenerator.getEntity(s.name, s.ori, s.side));
             }
 
-            e.setPreviousWorldX(s.point.x);
-            e.setPreviousWorldY(s.point.y);
+            e.setPreviousPoint(s.point);
             e.setDirection(s.direction);
 
-            if (e.getWorldX() != s.point.x || e.getWorldY() != s.point.y) {
+            // Entity placed on different tile, reverse to original tile
+            if (!e.getPoint().equals(e.getPreviousPoint())) {
                 e.setReversing(true);
             }
         }
@@ -116,18 +116,18 @@ public class StateHandler {
             }
 
             if (!found) {
+
                 State s = saved.get(id);
                 Entity e = gp.eGenerator.getEntity(s.name, s.ori, s.side);
+                if (e == null) continue;
 
-                if (e != null) {
-                    e.setAlive(true);
+                e.setAlive(true);
+                e.setId(id);
 
-                    e.setWorldX(s.point.x);
-                    e.setWorldY(s.point.y);
-                    e.setDirection(s.direction);
+                e.setPoint(s.point);
+                e.setDirection(s.direction);
 
-                    gp.entities.add(e);
-                }
+                gp.entities.add(e);
             }
         }
     }

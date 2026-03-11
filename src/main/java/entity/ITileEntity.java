@@ -2,14 +2,15 @@ package entity;
 
 import application.GamePanel;
 
+import java.awt.*;
+
 public abstract class ITileEntity extends Entity {
 
     public ITileEntity(GamePanel gp, int col, int row, String name, int ori, int side) {
         super(gp);
 
-        worldX = col * gp.tileSize;
-        worldY = row * gp.tileSize;
-
+        this.point = new Point(col * gp.tileSize, row * gp.tileSize);
+        setPreviousPoint(point);
         this.name = name;
         this.ori = ori;
         this.side = side;

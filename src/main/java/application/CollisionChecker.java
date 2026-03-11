@@ -21,7 +21,7 @@ public record CollisionChecker(GamePanel gp) {
 
         Point next = getNextTilePosition(entity, dir);
         for (Entity e : gp.entities) {
-            if (e.getWorldX() == next.x && e.getWorldY() == next.y) {
+            if (e.getPoint().equals(next)) {
                 result.add(e);
             }
         }
@@ -47,7 +47,9 @@ public record CollisionChecker(GamePanel gp) {
             case RIGHT -> nextX = gp.tileSize;
         }
 
-        return new Point(entity.getWorldX() + nextX, entity.getWorldY() + nextY);
+
+
+        return new Point(entity.getPoint().x + nextX, entity.getPoint().y + nextY);
     }
 
     /**
@@ -63,7 +65,7 @@ public record CollisionChecker(GamePanel gp) {
         for (Entity t : gp.entities) {
             if (t == entity) continue;
 
-            if (t.getWorldX() == entity.getWorldX() && t.getWorldY() == entity.getWorldY()) {
+            if (t.getPoint().equals(entity.getPoint())) {
                 targets.add(t);
             }
         }

@@ -103,8 +103,8 @@ class LogicHandler {
             for (Entity w : gp.entities) {
                 if (!(w instanceof WordEntity)) continue;
 
-                int x = w.getWorldX() / gp.tileSize;
-                int y = w.getWorldY() / gp.tileSize;
+                int x = w.getPoint().x / gp.tileSize;
+                int y = w.getPoint().y / gp.tileSize;
 
                 // Word's X matches column, add to corresponding Y (row) in list
                 if (x == col) {
@@ -135,8 +135,8 @@ class LogicHandler {
             for (Entity w : gp.entities) {
                 if (!(w instanceof WordEntity)) continue;
 
-                int x = w.getWorldX() / gp.tileSize;
-                int y = w.getWorldY() / gp.tileSize;
+                int x = w.getPoint().x / gp.tileSize;
+                int y = w.getPoint().y / gp.tileSize;
 
                 // Word is on same row, add to corresponding X (column) in list
                 if (y == row) {
@@ -241,7 +241,7 @@ class LogicHandler {
                                     if (!target.getName().equals(onTarget)) continue;
 
                                     // Subject and target are on top of each other
-                                    if (target.getWorldX() == e.getWorldX() && target.getWorldY() == e.getWorldY()) {
+                                    if (target.getPoint().equals(e.getPoint())) {
                                         String ruleString = subject + " ON " + onTarget + " " + verb + " " + predicate;
                                         rules.add(ruleString);
                                         applyPropertyRule(subject, property);
@@ -273,7 +273,7 @@ class LogicHandler {
                                     if (!target.getName().equals(onTarget)) continue;
 
                                     // If subject and target are on top of each other
-                                    if (target.getWorldX() == e.getWorldX() && target.getWorldY() == e.getWorldY()) {
+                                    if (target.getPoint().equals(e.getPoint())) {
                                         String ruleString = subject + " ON " + onTarget + " " + verb + " " + predicate;
                                         rules.add(ruleString);
 

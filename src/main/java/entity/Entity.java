@@ -85,15 +85,12 @@ public class Entity {
         SWAP {
             @Override
             boolean blocksMovement(Entity self, Entity mover, Direction dir) {
-                int otherX = mover.getWorldX();
-                int otherY = mover.getWorldY();
+                Point otherPoint = mover.getPoint();
 
-                mover.setPreviousWorldX(self.getWorldX());
-                mover.setPreviousWorldY(self.getWorldY());
+                mover.setPreviousPoint(self.getPoint());
                 mover.setReversing(true);
 
-                self.setPreviousWorldX(otherX);
-                self.setPreviousWorldY(otherY);
+                self.setPreviousPoint(otherPoint);
                 self.setReversing(true);
 
                 return false;
@@ -135,11 +132,10 @@ public class Entity {
     protected GamePanel gp;
 
     private static int NEXT_ID = 0;
-    private final int id;
+    private int id;
 
     /* GENERAL ATTRIBUTES */
-    protected int worldX, worldY;
-    private int previousWorldX, previousWorldY;
+    protected Point point, previousPoint;
     protected String name;
     protected int ori, side;
     private boolean alive = true;
@@ -234,10 +230,10 @@ public class Entity {
      */
     private void moveATile() {
         switch (direction) {
-            case UP -> worldY -= speed;
-            case DOWN -> worldY += speed;
-            case LEFT -> worldX -= speed;
-            case RIGHT-> worldX += speed;
+            case UP -> point.y -= speed;
+            case DOWN -> point.y += speed;
+            case LEFT -> point.x -= speed;
+            case RIGHT-> point.x += speed;
         }
 
         if (this instanceof CharacterEntity) {
@@ -252,10 +248,10 @@ public class Entity {
     }
     private void moveBackwards() {
 
-        if (previousWorldX > worldX) worldX += speed;
-        else if (previousWorldX < worldX) worldX -= speed;
-        else if (previousWorldY > worldY) worldY += speed;
-        else if (previousWorldY < worldY) worldY -= speed;
+        if (previousPoint.x > point.x) point.x += speed;
+        else if (previousPoint.x < point.x) point.x -= speed;
+        else if (previousPoint.y > point.y) point.y += speed;
+        else if (previousPoint.y < point.y) point.y -= speed;
 
         if (this instanceof CharacterEntity) {
             cycleSprites();
@@ -357,6 +353,7 @@ public class Entity {
     public void move(GamePanel.Direction dir) {
         this.direction = dir;
         this.moving = true;
+        setPreviousPoint(point);
     }
     private void kill() {
         if (!alive) return;
@@ -369,8 +366,7 @@ public class Entity {
                     stayAlive = true;
                 }
                 else {
-                    e.setWorldX(worldX);
-                    e.setWorldY(worldY);
+                    e.setPoint(point);
                     gp.spawnQueue.add(e);
                 }
             }
@@ -383,8 +379,7 @@ public class Entity {
     }
     public void transform(Entity newForm) {
 
-        newForm.setWorldX(worldX);
-        newForm.setWorldY(worldY);
+        newForm.setPoint(point);
         gp.spawnQueue.add(newForm);
 
         alive = false;
@@ -415,7 +410,7 @@ public class Entity {
         image = getSprite();
 
         // Draw sprite
-        g2.drawImage(image, worldX, worldY, null);
+        g2.drawImage(image, point.x, point.y, null);
     }
 
     /** GET CURRENT SPRITE TO DRAW **/
@@ -459,25 +454,22 @@ public class Entity {
     public int getId() {
         return id;
     }
-
-    public int getWorldX() {
-        return worldX;
-    }
-    public int getWorldY() {
-        return worldY;
-    }
-    public void setWorldX(int worldX) {
-        this.worldX = worldX;
-    }
-    public void setWorldY(int worldY) {
-        this.worldY = worldY;
+    public void setId(int id) {
+        this.id = id;
     }
 
-    public void setPreviousWorldX(int previousWorldX) {
-        this.previousWorldX = previousWorldX;
+    public Point getPoint() {
+        return point;
     }
-    public void setPreviousWorldY(int previousWorldY) {
-        this.previousWorldY = previousWorldY;
+    public void setPoint(Point point) {
+        this.point = new Point(point);
+    }
+
+    public Point getPreviousPoint() {
+        return previousPoint;
+    }
+    public void setPreviousPoint(Point previousPoint) {
+        this.previousPoint = new Point(previousPoint);
     }
 
     public String getName() {

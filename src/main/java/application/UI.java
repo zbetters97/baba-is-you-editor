@@ -320,7 +320,7 @@ public class UI {
         int y = gp.tileSize * 2;
         int width = gp.tileSize * 20;
         int offset = isSaving ? 2 : 1;
-        int height = (int) ((gp.tileSize * .90) * (gp.saveFiles.size() + offset));
+        int height = (int) ((gp.tileSize * .95) * (gp.saveFiles.size() + offset));
         drawSubWindow(x, y, width, height);
 
         x = gp.tileSize * 3;
@@ -328,6 +328,25 @@ public class UI {
         String text;
 
         int index = 0;
+
+        if (isSaving) {
+            text = "1)  NEW";
+            g2.drawString(text, x, y);
+
+            if (commandNum == 0) {
+                g2.drawString(">", x - 25, y);
+
+                if (gp.keyH.aPressed) {
+                    gp.keyH.aPressed = false;
+                    commandNum = 0;
+                    subState = 6;
+                }
+            }
+
+            index++;
+            y += gp.tileSize;
+        }
+
         for (Map.Entry<String, String> entry : gp.saveFiles.entrySet()) {
 
             text = index + 1 + ")  " + entry.getValue();
@@ -361,21 +380,6 @@ public class UI {
 
             index++;
             y += gp.tileSize;
-        }
-
-        if (isSaving) {
-            text = gp.saveFiles.size() + 1 + ")  NEW";
-            g2.drawString(text, x, y);
-
-            if (commandNum == gp.saveFiles.size()) {
-                g2.drawString(">", x - 25, y);
-
-                if (gp.keyH.aPressed) {
-                    gp.keyH.aPressed = false;
-                    commandNum = 0;
-                    subState = 6;
-                }
-            }
         }
 
         if (gp.keyH.bPressed || gp.keyH.startPressed) {
@@ -802,7 +806,7 @@ public class UI {
             Entity e = it.next();
 
             // Entity found at same X/Y
-            if (e.getWorldX() == slotCol && e.getWorldY() == slotRow) {
+            if (entityFoundAtPoint(e, slotCol, slotRow)) {
 
                 // Trying to place selected entity on top of existing, not allowed
                 if (selectedEntity != null) return true;
@@ -823,8 +827,7 @@ public class UI {
         currentEntity = gp.eGenerator.getEntity(uiEntity.getName(), uiEntity.getOri(), uiEntity.getSide());
         if (currentEntity == null) return;
 
-        currentEntity.setWorldX(slotCol);
-        currentEntity.setWorldY(slotRow);
+        currentEntity.setPoint(new Point(slotCol, slotRow));
     }
 
     private void editing_Map_Input_B() {
@@ -837,7 +840,7 @@ public class UI {
                 Entity e = it.next();
 
                 // Entity found, delete from list
-                if (e.getWorldX() == slotCol && e.getWorldY() == slotRow) {
+                if (entityFoundAtPoint(e, slotCol, slotRow)) {
                     it.remove();
                     return;
                 }
@@ -854,7 +857,7 @@ public class UI {
             for (Entity e : gp.entities) {
 
                 // Entity found, copy and select
-                if (e.getWorldX() == slotCol && e.getWorldY() == slotRow) {
+                if (entityFoundAtPoint(e, slotCol, slotRow)) {
                     selectedEntity = gp.eGenerator.getEntity(e.getName(), e.getOri(), e.getSide());
                     return;
                 }
@@ -888,9 +891,12 @@ public class UI {
         }
     }
 
+    private boolean entityFoundAtPoint(Entity e, int x, int y) {
+        return e.getPoint().x == x && e.getPoint().y == y;
+    }
+
     private void editing_PlaceEntity(Entity entity) {
-        entity.setWorldX(slotCol);
-        entity.setWorldY(slotRow);
+        entity.setPoint(new Point(slotCol, slotRow));
         gp.entities.add(entity);
     }
 

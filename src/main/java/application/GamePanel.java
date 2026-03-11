@@ -327,15 +327,18 @@ public class GamePanel extends JPanel implements Runnable {
         }
 
         // Entities can move
-        if (!moveSet.isEmpty()) {
-            stateHandler.saveState();
+        if (moveSet.isEmpty()) return;
 
-            // Start move for each entity that can move
-            playSE(2, 0);
-            for (Entity e : moveSet) {
-                e.move(direction);
-            }
+        // Save current positions
+        stateHandler.saveState();
+
+        // Start move for each entity that can move
+        for (Entity e : moveSet) {
+            e.move(direction);
         }
+
+        // Play walking SE
+        playSE(2, 0);
     }
 
     private void handleRedoInput() {

@@ -6,6 +6,7 @@ import entity.tile_interactive.IT_Belt;
 import entity.tile_interactive.IT_Wall;
 import entity.tile_interactive.IT_Water;
 
+import java.awt.*;
 import java.io.*;
 import java.nio.file.Path;
 import java.sql.Date;
@@ -65,8 +66,8 @@ public record SaveLoad(GamePanel gp) {
 
                 // Entity found, save data
                 ds.names[i] = e.getName();
-                ds.worldX[i] = e.getWorldX();
-                ds.worldY[i] = e.getWorldY();
+                ds.worldX[i] = e.getPoint().x;
+                ds.worldY[i] = e.getPoint().y;
 
                 // Entity is an iTile, save variance
                 switch (e) {
@@ -174,8 +175,7 @@ public record SaveLoad(GamePanel gp) {
 
                 if (e == null) continue;
 
-                e.setWorldX(ds.worldX[i]);
-                e.setWorldY(ds.worldY[i]);
+                e.setPoint(new Point(ds.worldX[i], ds.worldY[i]));
 
                 // Assign to GamePanel entity list
                 entities.add(e);
