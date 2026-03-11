@@ -152,10 +152,6 @@ public class Entity {
     private final ArrayList<Entity> heldEntities = new ArrayList<>();
     private boolean lockTransformation = false;
 
-    /* COLLISION VALUES */
-    private final Rectangle hitbox = new Rectangle(0, 0, 48, 48);
-    private boolean collisionOn = false;
-
     /* SPRITE ATTRIBUTES */
     protected BufferedImage image;
     protected BufferedImage up1;
@@ -272,9 +268,11 @@ public class Entity {
     }
 
     public void checkEntities() {
-        Entity e = gp.cChecker.checkEntity(this, gp.entities);
+        ArrayList<Entity> targets = gp.cChecker.checkEntity(this);
 
-        if (e != null) {
+        if (targets.isEmpty()) return;
+
+        for (Entity e : targets) {
             e.onTouch(this);
         }
     }
@@ -295,21 +293,20 @@ public class Entity {
         pixelCounter = 0;
         spriteNum = 1;
         spriteCounter = 0;
-        collisionOn = false;
     }
 
     /**
-     * CAN MOVE
+     * CANT MOVE
      * Checks if the entity is able to move a tile
      * Called by move()
      * @param entity Entity that wants to move
      * @param dir The direction the entity is moving
-     * @return True if able to move, false if not
+     * @return True if not able to move, false if able
      */
-    public boolean canMove(Entity entity, GamePanel.Direction dir, Set<Entity> moveSet) {
+    public boolean cantMove(Entity entity, GamePanel.Direction dir, Set<Entity> moveSet) {
 
         if (gp.cChecker.isOutOfBounds(entity, dir)) {
-            return false;
+            return true;
         }
 
         // Get all entities sitting on the next tile
@@ -318,22 +315,22 @@ public class Entity {
 
             // Can't move
             if (e.blocks(entity, dir)) {
-                return false;
+                return true;
             }
 
             // Entity has PUSH, attempt to move
             if (e.canBePushed()) {
 
                 // Can't move
-                if (!canMove(e, dir, moveSet)) {
-                    return false;
+                if (cantMove(e, dir, moveSet)) {
+                    return true;
                 }
 
                 moveSet.add(e);
             }
         }
 
-        return true;
+        return false;
     }
     private boolean blocks(Entity mover, GamePanel.Direction dir) {
         for (Property p : properties) {
@@ -508,16 +505,6 @@ public class Entity {
     }
     public void  setReversing(boolean reversing) {
         this.reversing = reversing;
-    }
-
-    public Rectangle getHitbox() {
-        return hitbox;
-    }
-    public boolean getCollisionOn() {
-        return collisionOn;
-    }
-    public void setCollision(boolean collisionOn) {
-        this.collisionOn = collisionOn;
     }
 
     public boolean getAlive() {

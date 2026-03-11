@@ -6,21 +6,20 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import static entity.Entity.Property.STOP;
-
 public record CollisionChecker(GamePanel gp) {
 
     /**
      * GET ENTITIES AT NEXT TILE
+     * Get list of entities that are at the tile to be moved on
      * @param entity Entity that is moving to the tile
      * @param dir Direction the entity is moving
      * @return List of entities found at tile
      */
     public List<Entity> getEntitiesAtNextTile(Entity entity, GamePanel.Direction dir) {
-        Point next = getNextTilePosition(entity, dir);
 
-        // Get all entities at the next tile
         List<Entity> result = new ArrayList<>();
+
+        Point next = getNextTilePosition(entity, dir);
         for (Entity e : gp.entities) {
             if (e.getWorldX() == next.x && e.getWorldY() == next.y) {
                 result.add(e);
@@ -38,6 +37,7 @@ public record CollisionChecker(GamePanel gp) {
      * @return The X/Y Point the entity will end on
      */
     private Point getNextTilePosition(Entity entity, GamePanel.Direction dir) {
+
         int nextX = 0, nextY = 0;
 
         switch (dir) {
@@ -50,59 +50,25 @@ public record CollisionChecker(GamePanel gp) {
         return new Point(entity.getWorldX() + nextX, entity.getWorldY() + nextY);
     }
 
-
     /**
      * CHECK ENTITY
      * Detects if given entity will collide with any entity from the given list
      * @param entity Entity to check collision on
-     * @param targets List of entities to check collision against
-     * @return Entity the given entity will interact with, -1 if none
+     * @return List of entities the given entity will interact with
      */
-    public Entity checkEntity(Entity entity, ArrayList<Entity> targets) {
+    public ArrayList<Entity> checkEntity(Entity entity) {
 
-        Entity target = null;
-        for (Entity t : targets) {
-            entity.getHitbox().x = entity.getWorldX();
-            entity.getHitbox().y = entity.getWorldY();
+        ArrayList<Entity> targets = new ArrayList<>();
 
-            t.getHitbox().x = t.getWorldX();
-            t.getHitbox().y = t.getWorldY();
+        for (Entity t : gp.entities) {
+            if (t == entity) continue;
 
-            // Entity and target collides
-            if (entity.getHitbox().intersects(t.getHitbox()) && entity.getId() != t.getId()) {
-
-                target = t;
-                if (t.has(STOP) || t.getCollisionOn()) {
-                    entity.setCollision(true);
-                }
+            if (t.getWorldX() == entity.getWorldX() && t.getWorldY() == entity.getWorldY()) {
+                targets.add(t);
             }
-
-            if (isOutOfBounds(entity.getHitbox().x, entity.getHitbox().y)) {
-                entity.setCollision(true);
-            }
-
-            // Reset entity solid area
-            entity.getHitbox().x = 0;
-            entity.getHitbox().y = 0;
-
-            // Reset target solid area
-            t.getHitbox().x = 0;
-            t.getHitbox().y = 0;
         }
 
-        return target;
-    }
-
-    /**
-     * IS OUT-OF-BOUNDS
-     * Checks if the given X/Y is out of world boundary
-     * @param x X coordinate of entity
-     * @param y Y coordinate of entity
-     * @return True if entity is out of bounds
-     */
-    public boolean isOutOfBounds(int x, int y) {
-        return x < 0 || x > gp.screenWidth - gp.tileSize ||
-                y < 0 || y > gp.screenHeight - gp.tileSize;
+        return targets;
     }
 
     /**
@@ -113,7 +79,9 @@ public record CollisionChecker(GamePanel gp) {
      * @return True if entity is out of bounds
      */
     public boolean isOutOfBounds(Entity entity, GamePanel.Direction dir) {
+
         Point next = getNextTilePosition(entity, dir);
+
         return next.x < 0 || next.x > gp.screenWidth - gp.tileSize ||
                 next.y < 0 || next.y > gp.screenHeight - gp.tileSize;
     }

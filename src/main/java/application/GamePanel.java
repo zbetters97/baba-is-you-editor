@@ -216,27 +216,13 @@ public class GamePanel extends JPanel implements Runnable {
         // Run redo if requested
         handleRedoInput();
 
-        // Check if entities are currently moving
-        boolean movingNow = !noEntitiesMoving();
+        // Check rules in play
+        checkRules();
 
-        // Any entity was moving and then stopped
-        if (entitiesWereMoving && !movingNow) {
-
-            // Only scan rules if a word moves or redo finishes
-            lHandler.scanForRules();
-
-            // Check for entity rules if not redo
-            if (!rewinding) {
-                for (Entity e : entities) e.checkEntities();
-            }
-
-            rewinding = false;
-        }
-
-        // Capture if entities are currently moving
-        entitiesWereMoving = movingNow;
-
+        // Detect if player won
         checkWin();
+
+        // Respond to configuration input
         handleConfigInput();
     }
 
@@ -246,14 +232,18 @@ public class GamePanel extends JPanel implements Runnable {
      * Called by runUpdate()
      */
     private void updateEntities() {
+
+        // Update all entities, remove from list if not alive
         for (Entity e : entities) e.update();
         entities.removeIf(e -> !e.getAlive());
 
-        // Spawn new entities after update
-        // Check rules if new entities spawned in
+        // Entities spawned in after update, add to list
         if (!spawnQueue.isEmpty()) {
             entities.addAll(spawnQueue);
             spawnQueue.clear();
+
+            // Override flag to check for rules
+            entitiesWereMoving = true;
         }
     }
 
@@ -263,7 +253,7 @@ public class GamePanel extends JPanel implements Runnable {
     private void handleMovementInput() {
 
         // Entities currently moving, do nothing
-        if (!noEntitiesMoving()) {
+        if (entitiesMoving()) {
             return;
         }
 
@@ -277,23 +267,22 @@ public class GamePanel extends JPanel implements Runnable {
         Direction directionPressed = getPressedDirection();
 
         // Arrow pressed while no entity movement
-        if (directionPressed != null && cooldown > 3 && hasMoveableEntities(directionPressed)) {
+        if (directionPressed != null && cooldown > 3 && hasMoveableEntities()) {
 
-            stateHandler.saveState();
             canLoad = false;
             cooldown = 0;
 
             moveEntities(entities, directionPressed);
         }
     }
-    private boolean noEntitiesMoving() {
+    private boolean entitiesMoving() {
         for (Entity e : entities) {
             if (e.getMoving() || e.getReversing()) {
-                return false;
+                return true;
             }
         }
 
-        return true;
+        return false;
     }
     private Direction getPressedDirection() {
 
@@ -306,9 +295,9 @@ public class GamePanel extends JPanel implements Runnable {
 
         return direction;
     }
-    private boolean hasMoveableEntities(Direction direction) {
+    private boolean hasMoveableEntities() {
         for (Entity e : entities) {
-            if (e.has(YOU) && e.canMove(e, direction, new LinkedHashSet<>())) {
+            if (e.has(YOU)) {
                 return true;
             }
         }
@@ -323,36 +312,72 @@ public class GamePanel extends JPanel implements Runnable {
         // Loop through each entity
         for (Entity e : entities) {
 
-            // Entity not YOU or unable to move
-            if (!e.has(YOU) || !e.canMove(e, direction, moveSet)) {
+            // Entity not YOU
+            if (!e.has(YOU)) {
+                continue;
+            }
+
+            // Entity can't move, change direction
+            if (e.cantMove(e, direction, moveSet)) {
+                e.setDirection(direction);
                 continue;
             }
 
             moveSet.add(e);
         }
 
-        // Start move for each entity that can move
-        playSE(2, 0);
-        for (Entity m : moveSet) {
-            m.move(direction);
+        // Entities can move
+        if (!moveSet.isEmpty()) {
+            stateHandler.saveState();
+
+            // Start move for each entity that can move
+            playSE(2, 0);
+            for (Entity e : moveSet) {
+                e.move(direction);
+            }
         }
     }
 
     private void handleRedoInput() {
-        if (keyH.bPressed && canLoad && noEntitiesMoving()) {
+        if (keyH.bPressed && canLoad && !entitiesMoving()) {
             keyH.bPressed = false;
             playSE(2, 0);
 
             stateHandler.loadState();
 
             // If redo moves entities back
-            rewinding = !noEntitiesMoving();
+            rewinding = entitiesMoving();
 
             // Check rules if rewind not applied
             if (!rewinding) {
                 lHandler.scanForRules();
             }
         }
+    }
+
+    private void checkRules() {
+
+        // Check if entities are currently moving
+        boolean movingNow = entitiesMoving();
+
+        // Any entity was moving and then stopped
+        if (entitiesWereMoving && !movingNow) {
+
+            // Only scan rules if a word moves or redo finishes
+            lHandler.scanForRules();
+
+            // Check for entity rules if not redo
+            if (!rewinding) {
+                for (Entity e : entities) {
+                    e.checkEntities();
+                }
+            }
+
+            rewinding = false;
+        }
+
+        // Capture if entities are currently moving
+        entitiesWereMoving = movingNow;
     }
 
     private void checkWin() {
