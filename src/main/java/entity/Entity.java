@@ -378,7 +378,6 @@ public class Entity {
         resetMovement();
     }
     public void transform(Entity newForm) {
-
         newForm.setPoint(point);
         gp.spawnQueue.add(newForm);
 

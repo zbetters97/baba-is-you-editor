@@ -7,7 +7,7 @@ import entity.word.*;
 
 import java.util.*;
 
-class LogicHandler {
+public class LogicHandler {
 
     // Words mapped to a property
     private static final Map<String, Entity.Property> PROPERTY_MAP =
@@ -37,8 +37,9 @@ class LogicHandler {
 
     private final GamePanel gp;
     public boolean rulesInitialized = false;
+    private Set<String> newRules;
     private Set<String> activeRules = new HashSet<>();
-    private final Map<String, List<Entity>> transformations = new HashMap<>();
+    private final Map<String, List<String>> transformations = new HashMap<>();
 
     public LogicHandler(GamePanel gp) {
         this.gp = gp;
@@ -50,12 +51,12 @@ class LogicHandler {
      * Called by GamePanel
      */
     public void scanForRules() {
-        Set<String> newRules = new HashSet<>();
+        newRules = new HashSet<>();
 
         clearProperties();
-        scanColumnRules(newRules);
-        scanRowRules(newRules);
-        applyTransformations();
+        scanColumnRules();
+        scanRowRules();
+        applyTransformationRules();
 
         // Play sound if new rule was created
         if (rulesInitialized) {
@@ -90,7 +91,7 @@ class LogicHandler {
      * Scans each column to find valid rules
      * Called by update()
      */
-    private void scanColumnRules(Set<String> rules) {
+    private void scanColumnRules() {
 
         // Loop over each column (horizontally)
         for (int col = 0; col < gp.maxWorldCol; col++) {
@@ -113,7 +114,7 @@ class LogicHandler {
             }
 
             // Check if any rules are active
-            checkRules(colWords, rules);
+            checkRules(colWords);
         }
     }
 
@@ -122,7 +123,7 @@ class LogicHandler {
      * Scans each row to find valid rules
      * Called by update()
      */
-    private void scanRowRules(Set<String> rules) {
+    private void scanRowRules() {
 
         // Loop over each row (vertically)
         for (int row = 0; row < gp.maxWorldRow; row++) {
@@ -145,7 +146,7 @@ class LogicHandler {
             }
 
             // Check if any rules are active
-            checkRules(rowWords, rules);
+            checkRules(rowWords);
         }
     }
 
@@ -154,7 +155,7 @@ class LogicHandler {
      * Parses through given array string and assigns properties where applicable
      * @param words Array of words to parse through
      */
-    private void checkRules(String[] words, Set<String> rules) {
+    private void checkRules(String[] words) {
 
         String verb;
         int i = 0;
@@ -190,7 +191,7 @@ class LogicHandler {
                 continue;
             }
 
-            // If ON word is at play
+            // If rule contains ON
             String onTarget = null;
             if (words[k + 1].equals(WORD_On.wordName)) {
                 if (k + 2 < words.length) {
@@ -203,7 +204,7 @@ class LogicHandler {
                 }
             }
 
-            // Continue if a linking verb is after the rule
+            // Break if linking verb is not after the rule
             if (k + 1 >= words.length || !linkingVerbs.contains(words[k + 1])) {
                 i = k + 1;
                 continue;
@@ -214,6 +215,7 @@ class LogicHandler {
             // Collect all predicates after connecting words
             int j = k + 2;
             while (j < words.length) {
+
                 String predicate = words[j];
 
                 // Potential new rule to apply
@@ -225,82 +227,10 @@ class LogicHandler {
 
                 // Rule found
                 if (property != null) {
-
-                    // Apply rule for all subjects
-                    for (String subject : subjects) {
-
-                        // Rule includes ON condition
-                        if (onTarget != null) {
-
-                            // Find subject
-                            for (Entity e : gp.entities) {
-                                if (!e.getName().equals(subject)) continue;
-
-                                // Find target
-                                for (Entity target : gp.entities) {
-                                    if (!target.getName().equals(onTarget)) continue;
-
-                                    // Subject and target are on top of each other
-                                    if (target.getPoint().equals(e.getPoint())) {
-                                        String ruleString = subject + " ON " + onTarget + " " + verb + " " + predicate;
-                                        rules.add(ruleString);
-                                        applyPropertyRule(subject, property);
-                                    }
-                                }
-                            }
-                        }
-                        else {
-                            String ruleString = subject + " " + verb + " " + predicate;
-                            rules.add(ruleString);
-                            applyPropertyRule(subject, property);
-                        }
-                    }
+                    addProperties(subjects, onTarget, verb, predicate, property);
                 }
                 else if (newForm != null) {
-
-                    // Apply rule for all subjects
-                    for (String subject : subjects) {
-
-                        // Rule includes ON condition
-                        if (onTarget != null) {
-
-                            // Find subject
-                            for (Entity e : gp.entities) {
-                                if (!e.getName().equals(subject)) continue;
-
-                                // Find target
-                                for (Entity target : gp.entities) {
-                                    if (!target.getName().equals(onTarget)) continue;
-
-                                    // If subject and target are on top of each other
-                                    if (target.getPoint().equals(e.getPoint())) {
-                                        String ruleString = subject + " ON " + onTarget + " " + verb + " " + predicate;
-                                        rules.add(ruleString);
-
-                                        // Rule gives held entity to subject
-                                        if (verb.equals(WORD_Has.wordName)) {
-                                            applyHasRule(subject, newForm);
-                                        }
-                                        else if (verb.equals(WORD_Is.wordName)) {
-                                            transformations.computeIfAbsent(subject, _ -> new ArrayList<>()).add(newForm);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        else {
-                            String ruleString = subject + " " + verb + " " + predicate;
-                            rules.add(ruleString);
-
-                            // Rule gives held entity to subject
-                            if (verb.equals(WORD_Has.wordName)) {
-                                applyHasRule(subject, newForm);
-                            }
-                            else if (verb.equals(WORD_Is.wordName)) {
-                                transformations.computeIfAbsent(subject, _ -> new ArrayList<>()).add(newForm);
-                            }
-                        }
-                    }
+                    addTransformations(subjects, onTarget, verb, predicate, newFormName);
                 }
 
                 // Break if next word is not AND
@@ -314,24 +244,38 @@ class LogicHandler {
         }
     }
 
-    private void applyHasRule(String entityName, Entity form) {
-        for (Entity e : gp.entities) {
+    private void addProperties(List<String> subjects, String onTarget, String verb, String predicate, Property property) {
 
-            // If entity's name matches passed name, provide property
-            if (e.getName().equals(entityName)) {
-                e.giveHeldEntity(form);
+        // Apply rule for all subjects
+        for (String subject : subjects) {
+
+            // Rule includes ON condition
+            if (onTarget != null) {
+
+                // Find subject
+                for (Entity e : gp.entities) {
+                    if (!e.getName().equals(subject)) continue;
+
+                    // Find target
+                    for (Entity target : gp.entities) {
+                        if (!target.getName().equals(onTarget)) continue;
+
+                        // Subject and target are on top of each other
+                        if (target.getPoint().equals(e.getPoint())) {
+                            String ruleString = subject + " ON " + onTarget + " " + verb + " " + predicate;
+                            newRules.add(ruleString);
+                            applyPropertyRule(subject, property);
+                        }
+                    }
+                }
+            }
+            else {
+                String ruleString = subject + " " + verb + " " + predicate;
+                newRules.add(ruleString);
+                applyPropertyRule(subject, property);
             }
         }
     }
-
-    /**
-     * APPLY RULE
-     * Finds the objects that have the name
-     * And assigns the given property to that object
-     * Called by checkRules()
-     * @param entityName The name of the entity to pass the property to
-     * @param property The property the object will be receiving
-     */
     private void applyPropertyRule(String entityName, Entity.Property property) {
         for (Entity e : gp.entities) {
 
@@ -342,18 +286,75 @@ class LogicHandler {
         }
     }
 
-    private void applyTransformations() {
+    private void addTransformations(List<String> subjects, String onTarget, String verb, String predicate, String newFormName) {
+
+        // Apply rule for all subjects
+        for (String subject : subjects) {
+
+            // Rule includes ON condition
+            if (onTarget != null) {
+
+                // Find subject
+                for (Entity e : gp.entities) {
+                    if (!e.getName().equals(subject)) continue;
+
+                    // Find target
+                    for (Entity target : gp.entities) {
+                        if (!target.getName().equals(onTarget)) continue;
+
+                        // If subject and target are on top of each other
+                        if (target.getPoint().equals(e.getPoint())) {
+                            String ruleString = subject + " ON " + onTarget + " " + verb + " " + predicate;
+                            newRules.add(ruleString);
+
+                            // Rule gives held entity to subject
+                            if (verb.equals(WORD_Has.wordName)) {
+                                applyHasRule(subject, newFormName);
+                            }
+                            else if (verb.equals(WORD_Is.wordName)) {
+                                transformations.computeIfAbsent(subject, _ -> new ArrayList<>()).add(newFormName);
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                String ruleString = subject + " " + verb + " " + predicate;
+                newRules.add(ruleString);
+
+                // Rule gives held entity to subject
+                if (verb.equals(WORD_Has.wordName)) {
+                    applyHasRule(subject, newFormName);
+                }
+                else if (verb.equals(WORD_Is.wordName)) {
+                    transformations.computeIfAbsent(subject, _ -> new ArrayList<>()).add(newFormName);
+                }
+            }
+        }
+    }
+    private void applyHasRule(String entityName, String newFormName) {
+        for (Entity e : gp.entities) {
+
+            // If entity's name matches passed name, provide property
+            if (e.getName().equals(entityName)) {
+                Entity newForm = gp.eGenerator.getEntity(newFormName, 0, 0);
+                e.giveHeldEntity(newForm);
+            }
+        }
+    }
+
+    private void applyTransformationRules() {
 
         // Parse over each transformation rule
-        for (Map.Entry<String, List<Entity>> entry : transformations.entrySet()) {
+        for (Map.Entry<String, List<String>> entry : transformations.entrySet()) {
             String subject = entry.getKey();
 
             // Parse over each new form
-            for (Entity newForm : entry.getValue()) {
+            for (String newFormName : entry.getValue()) {
                 for (Entity e : gp.entities) {
 
                     // If transforming to self, lock transformation
-                    if (e.getName().equals(subject) && e.getName().equals(newForm.getName())) {
+                    if (e.getName().equals(subject) && e.getName().equals(newFormName)) {
                         e.setTransformationLock(true);
                     }
                 }
@@ -361,15 +362,16 @@ class LogicHandler {
         }
 
         // Parse over each mapped transformation
-        for (Map.Entry<String, List<Entity>> entry : transformations.entrySet()) {
+        for (Map.Entry<String, List<String>> entry : transformations.entrySet()) {
 
             // Apply transformation rule for each assigned form to entity
             String subject = entry.getKey();
-            for (Entity newForm : entry.getValue()) {
+            for (String newFormName : entry.getValue()) {
                 for (Entity e : gp.entities) {
 
                     // If entity's name matches passed name, transform to new entity
                     if (e.getName().equals(subject) && !e.getTransformationLock()) {
+                        Entity newForm = gp.eGenerator.getEntity(newFormName, 0, 0);
                         e.transform(newForm);
                     }
                 }

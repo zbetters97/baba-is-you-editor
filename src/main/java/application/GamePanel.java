@@ -239,6 +239,7 @@ public class GamePanel extends JPanel implements Runnable {
 
         // Entities spawned in after update, add to list
         if (!spawnQueue.isEmpty()) {
+
             entities.addAll(spawnQueue);
             spawnQueue.clear();
 
