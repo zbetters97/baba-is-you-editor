@@ -87,4 +87,9 @@ public record CollisionChecker(GamePanel gp) {
         return next.x < 0 || next.x > gp.screenWidth - gp.tileSize ||
                 next.y < 0 || next.y > gp.screenHeight - gp.tileSize;
     }
+
+    public boolean isOutOfBounds(int x, int y) {
+        return x < 0 || x > gp.screenWidth - gp.tileSize ||
+                y < 0 || y > gp.screenHeight - gp.tileSize;
+    }
 }

@@ -35,6 +35,16 @@ public class LogicHandler {
             )
     );
 
+    private static final ArrayList<String> prepositions = new ArrayList<>(
+            Arrays.asList(
+                    WORD_On.wordName,
+                    WORD_Near.wordName,
+                    WORD_Next.wordName,
+                    WORD_Facing.wordName,
+                    WORD_Seeing.wordName
+            )
+    );
+
     private final GamePanel gp;
     public boolean rulesInitialized = false;
     private Set<String> newRules;
@@ -169,18 +179,18 @@ public class LogicHandler {
                 String subject = words[k];
 
                 // Subject is an actual subject
-                if (!subject.isEmpty() && !linkingVerbs.contains(subject) && !subject.equals(WORD_On.wordName)) {
+                if (!subject.isEmpty() && !linkingVerbs.contains(subject) && !prepositions.contains(subject)) {
                     subjects.add(subject.replace("WORD_", ""));
                 }
 
                 if (k + 1 >= words.length) break;
 
-                // Break if next word is a linking verb or ON
+                // Break if next word is a linking verb or a preposition
                 verb = words[k + 1];
-                if (linkingVerbs.contains(verb) || verb.equals(WORD_On.wordName)) break;
+                if (linkingVerbs.contains(verb) || prepositions.contains(verb)) break;
 
                 // Break if next word is not AND
-                if (!words[k + 1].equals(WORD_And.wordName)) break;
+                if (!verb.equals(WORD_And.wordName)) break;
 
                 // AND continues the rule, continue to connecting set
                 k += 2;
@@ -191,17 +201,17 @@ public class LogicHandler {
                 continue;
             }
 
-            // If rule contains ON
-            String onTarget = null;
-            if (words[k + 1].equals(WORD_On.wordName)) {
-                if (k + 2 < words.length) {
+            // If rule contains preposition
+            String target = null;
+            String preposition = words[k + 1];
+            if (prepositions.contains(preposition)) {
+                if (k + 2 >= words.length) break;
 
-                    // Capture entity the subject must be ON for rule to apply
-                    onTarget = words[k + 2].replace("WORD_", "");
+                // Capture entity the subject must be related to for rule to apply
+                target = words[k + 2].replace("WORD_", "");
 
-                    // Move past ON and its target
-                    k += 2;
-                }
+                // Move past preposition and its target
+                k += 2;
             }
 
             // Break if linking verb is not after the rule
@@ -227,10 +237,10 @@ public class LogicHandler {
 
                 // Rule found
                 if (property != null) {
-                    addProperties(subjects, onTarget, verb, predicate, property);
+                    addProperties(subjects, preposition, target, verb, property);
                 }
                 else if (newForm != null) {
-                    addTransformations(subjects, onTarget, verb, predicate, newFormName);
+                    addTransformations(subjects, preposition, target, verb, newFormName);
                 }
 
                 // Break if next word is not AND
@@ -244,25 +254,24 @@ public class LogicHandler {
         }
     }
 
-    private void addProperties(List<String> subjects, String onTarget, String verb, String predicate, Property property) {
+    private void addProperties(List<String> subjects, String preposition, String target, String verb, Property property) {
 
         // Apply rule for all subjects
         for (String subject : subjects) {
 
-            // Rule includes ON condition
-            if (onTarget != null) {
+            // Rule includes a conditional
+            if (target != null) {
 
                 // Find subject
-                for (Entity e : gp.entities) {
-                    if (!e.getName().equals(subject)) continue;
+                for (Entity s : gp.entities) {
+                    if (!s.getName().equals(subject)) continue;
 
                     // Find target
-                    for (Entity target : gp.entities) {
-                        if (!target.getName().equals(onTarget)) continue;
+                    for (Entity t : gp.entities) {
+                        if (!t.getName().equals(target)) continue;
 
-                        // Subject and target are on top of each other
-                        if (target.getPoint().equals(e.getPoint())) {
-                            String ruleString = subject + " ON " + onTarget + " " + verb + " " + predicate;
+                        if (s.ruleApplies(preposition, t)) {
+                            String ruleString = subject + " " + preposition + " " + target + " " + verb + " " + property;
                             newRules.add(ruleString);
                             applyPropertyRule(subject, property);
                         }
@@ -270,7 +279,7 @@ public class LogicHandler {
                 }
             }
             else {
-                String ruleString = subject + " " + verb + " " + predicate;
+                String ruleString = subject + " " + verb + " " + property;
                 newRules.add(ruleString);
                 applyPropertyRule(subject, property);
             }
@@ -286,25 +295,24 @@ public class LogicHandler {
         }
     }
 
-    private void addTransformations(List<String> subjects, String onTarget, String verb, String predicate, String newFormName) {
+    private void addTransformations(List<String> subjects, String preposition, String target, String verb, String newFormName) {
 
         // Apply rule for all subjects
         for (String subject : subjects) {
 
             // Rule includes ON condition
-            if (onTarget != null) {
+            if (target != null) {
 
                 // Find subject
-                for (Entity e : gp.entities) {
-                    if (!e.getName().equals(subject)) continue;
+                for (Entity s : gp.entities) {
+                    if (!s.getName().equals(subject)) continue;
 
                     // Find target
-                    for (Entity target : gp.entities) {
-                        if (!target.getName().equals(onTarget)) continue;
+                    for (Entity t : gp.entities) {
+                        if (!t.getName().equals(target)) continue;
 
-                        // If subject and target are on top of each other
-                        if (target.getPoint().equals(e.getPoint())) {
-                            String ruleString = subject + " ON " + onTarget + " " + verb + " " + predicate;
+                        if (s.ruleApplies(preposition, t)) {
+                            String ruleString = subject + " " + preposition + " " + target + " " + verb + " " + newFormName;
                             newRules.add(ruleString);
 
                             // Rule gives held entity to subject
@@ -319,7 +327,7 @@ public class LogicHandler {
                 }
             }
             else {
-                String ruleString = subject + " " + verb + " " + predicate;
+                String ruleString = subject + " " + verb + " " + newFormName;
                 newRules.add(ruleString);
 
                 // Rule gives held entity to subject

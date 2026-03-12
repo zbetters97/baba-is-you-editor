@@ -2,6 +2,7 @@ package entity;
 
 import application.GamePanel;
 import application.GamePanel.Direction;
+import entity.word.*;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -207,6 +208,77 @@ public class Entity {
     }
     public boolean isSameFloat(Entity other) {
         return ((other.has(Property.FLOAT) && has(Property.FLOAT)) || (!other.has(Property.FLOAT) && !has(Property.FLOAT)));
+    }
+
+
+    public boolean ruleApplies(String preposition, Entity target) {
+
+        return switch (preposition) {
+            case WORD_On.wordName -> on(target);
+            case WORD_Near.wordName -> near(target);
+            case WORD_Next.wordName -> next(target);
+            case WORD_Facing.wordName -> facing(target);
+            case WORD_Seeing.wordName -> seeing(target);
+            default -> false;
+        };
+    }
+
+    protected boolean on(Entity target) {
+        return getPoint().equals(target.getPoint());
+    }
+
+    private boolean near(Entity target) {
+        int dx = Math.abs(target.getPoint().x - getPoint().x);
+        int dy = Math.abs(target.getPoint().y - getPoint().y);
+
+        return dx <= gp.tileSize && dy <= gp.tileSize && !(dx == 0 && dy == 0);
+    }
+
+    private boolean next(Entity target) {
+        int dx = Math.abs(target.getPoint().x - getPoint().x);
+        int dy = Math.abs(target.getPoint().y - getPoint().y);
+
+        return (dx == gp.tileSize && dy == 0) || (dy == gp.tileSize && dx == 0);
+    }
+
+    private boolean facing(Entity target) {
+        Point p = switch (direction) {
+            case UP -> new Point(point.x, point.y - gp.tileSize);
+            case DOWN -> new Point(point.x, point.y + gp.tileSize);
+            case LEFT -> new Point(point.x - gp.tileSize, point.y);
+            case RIGHT -> new Point(point.x + gp.tileSize, point.y);
+        };
+
+        return target.getPoint().equals(p);
+    }
+
+    private boolean seeing(Entity target) {
+
+        int dx = 0;
+        int dy = 0;
+
+        switch (direction) {
+            case UP -> dy = -gp.tileSize;
+            case DOWN -> dy = gp.tileSize;
+            case LEFT -> dx = -gp.tileSize;
+            case RIGHT -> dx = gp.tileSize;
+        }
+
+        int x = point.x + dx;
+        int y = point.y + dy;
+
+        while (!gp.cChecker.isOutOfBounds(x, y)) {
+            for (Entity e : gp.entities) {
+                if (e.getPoint().x == x && e.getPoint().y == y) {
+                    return (e.getName().equals(target.getName()));
+                }
+            }
+
+            x += dx;
+            y += dy;
+        }
+
+        return false;
     }
 
     /**

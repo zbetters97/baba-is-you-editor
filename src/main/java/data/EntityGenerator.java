@@ -19,7 +19,8 @@ public class EntityGenerator {
     public final Map<String, Supplier<Entity>> characterFactory = new LinkedHashMap<>();
     public final Map<String, Supplier<Entity>> objectFactory = new LinkedHashMap<>();
     public final Map<String, Supplier<Entity>> wordNounFactory = new LinkedHashMap<>();
-    public final Map<String, Supplier<Entity>> wordRuleFactory = new LinkedHashMap<>();
+    public final Map<String, Supplier<Entity>> wordPrepFactory = new LinkedHashMap<>();
+    public final Map<String, Supplier<Entity>> wordPropFactory = new LinkedHashMap<>();
     public final Map<String, BiFunction<Integer, Integer, Entity>> iTileFactory = new LinkedHashMap<>();
 
     public EntityGenerator(GamePanel gp) {
@@ -51,25 +52,31 @@ public class EntityGenerator {
         wordNounFactory.put(WORD_Wall.wordName, () -> new WORD_Wall(gp, 0, 0));
         wordNounFactory.put(WORD_Water.wordName, () -> new WORD_Water(gp, 0, 0));
 
-        // Word rules
-        wordRuleFactory.put(WORD_Is.wordName, () -> new WORD_Is(gp, 0, 0));
-        wordRuleFactory.put(WORD_And.wordName, () -> new WORD_And(gp, 0, 0));
-        wordRuleFactory.put(WORD_Has.wordName, () -> new WORD_Has(gp, 0, 0));
-        wordRuleFactory.put(WORD_On.wordName, () -> new WORD_On(gp, 0, 0));
-        wordRuleFactory.put(WORD_Defeat.wordName, () -> new WORD_Defeat(gp, 0, 0));
-        wordRuleFactory.put(WORD_Float.wordName, () -> new WORD_Float(gp, 0, 0));
-        wordRuleFactory.put(WORD_Hot.wordName, () -> new WORD_Hot(gp, 0, 0));
-        wordRuleFactory.put(WORD_Melt.wordName, () -> new WORD_Melt(gp, 0, 0));
-        wordRuleFactory.put(WORD_Open.wordName, () -> new WORD_Open(gp, 0, 0));
-        wordRuleFactory.put(WORD_Push.wordName, () -> new WORD_Push(gp, 0, 0));
-        wordRuleFactory.put(WORD_Shift.wordName, () -> new WORD_Shift(gp, 0, 0));
-        wordRuleFactory.put(WORD_Shut.wordName, () -> new WORD_Shut(gp, 0, 0));
-        wordRuleFactory.put(WORD_Sink.wordName, () -> new WORD_Sink(gp, 0, 0));
-        wordRuleFactory.put(WORD_Stop.wordName, () -> new WORD_Stop(gp, 0, 0));
-        wordRuleFactory.put(WORD_Swap.wordName, () -> new WORD_Swap(gp, 0, 0));
-        wordRuleFactory.put(WORD_Weak.wordName, () -> new WORD_Weak(gp, 0, 0));
-        wordRuleFactory.put(WORD_Win.wordName, () -> new WORD_Win(gp, 0, 0));
-        wordRuleFactory.put(WORD_You.wordName, () -> new WORD_You(gp, 0, 0));
+        // Word prepositions
+        wordPrepFactory.put(WORD_Is.wordName, () -> new WORD_Is(gp, 0, 0));
+        wordPrepFactory.put(WORD_And.wordName, () -> new WORD_And(gp, 0, 0));
+        wordPrepFactory.put(WORD_Has.wordName, () -> new WORD_Has(gp, 0, 0));
+        wordPrepFactory.put(WORD_On.wordName, () -> new WORD_On(gp, 0, 0));
+        wordPrepFactory.put(WORD_Near.wordName, () -> new WORD_Near(gp, 0, 0));
+        wordPrepFactory.put(WORD_Next.wordName, () -> new WORD_Next(gp, 0, 0));
+        wordPrepFactory.put(WORD_Facing.wordName, () -> new WORD_Facing(gp, 0, 0));
+        wordPrepFactory.put(WORD_Seeing.wordName, () -> new WORD_Seeing(gp, 0, 0));
+
+        // Word properties
+        wordPropFactory.put(WORD_Defeat.wordName, () -> new WORD_Defeat(gp, 0, 0));
+        wordPropFactory.put(WORD_Float.wordName, () -> new WORD_Float(gp, 0, 0));
+        wordPropFactory.put(WORD_Hot.wordName, () -> new WORD_Hot(gp, 0, 0));
+        wordPropFactory.put(WORD_Melt.wordName, () -> new WORD_Melt(gp, 0, 0));
+        wordPropFactory.put(WORD_Open.wordName, () -> new WORD_Open(gp, 0, 0));
+        wordPropFactory.put(WORD_Push.wordName, () -> new WORD_Push(gp, 0, 0));
+        wordPropFactory.put(WORD_Shift.wordName, () -> new WORD_Shift(gp, 0, 0));
+        wordPropFactory.put(WORD_Shut.wordName, () -> new WORD_Shut(gp, 0, 0));
+        wordPropFactory.put(WORD_Sink.wordName, () -> new WORD_Sink(gp, 0, 0));
+        wordPropFactory.put(WORD_Stop.wordName, () -> new WORD_Stop(gp, 0, 0));
+        wordPropFactory.put(WORD_Swap.wordName, () -> new WORD_Swap(gp, 0, 0));
+        wordPropFactory.put(WORD_Weak.wordName, () -> new WORD_Weak(gp, 0, 0));
+        wordPropFactory.put(WORD_Win.wordName, () -> new WORD_Win(gp, 0, 0));
+        wordPropFactory.put(WORD_You.wordName, () -> new WORD_You(gp, 0, 0));
 
         // I_Tiles
         iTileFactory.put(IT_Belt.iName, (ori, _) -> new IT_Belt(gp, 0, 0, ori));
@@ -87,7 +94,10 @@ public class EntityGenerator {
         entity = getFromFactory(wordNounFactory, eName);
         if (entity != null) return entity;
 
-        entity = getFromFactory(wordRuleFactory, eName);
+        entity = getFromFactory(wordPrepFactory, eName);
+        if (entity != null) return entity;
+
+        entity = getFromFactory(wordPropFactory, eName);
         if (entity != null) return entity;
 
         return getITile(eName, ori, side);

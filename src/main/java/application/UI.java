@@ -55,7 +55,8 @@ public class UI {
     private void fillEntityLibrary() {
         entityLibrary.addAll(Arrays.asList(
                 buildFromFactory("words", gp.eGenerator.wordNounFactory),
-                buildFromFactory("words", gp.eGenerator.wordRuleFactory),
+                buildFromFactory("words", gp.eGenerator.wordPrepFactory),
+                buildFromFactory("words", gp.eGenerator.wordPropFactory),
                 buildITilesLibraryList(),
                 buildFromFactory("objects", gp.eGenerator.objectFactory),
                 buildFromFactory("characters", gp.eGenerator.characterFactory)
