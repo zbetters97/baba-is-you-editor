@@ -3,6 +3,7 @@ package entity;
 import application.GamePanel;
 import application.GamePanel.Direction;
 import entity.word.*;
+import rules.Properties;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -15,120 +16,8 @@ import static application.GamePanel.Direction.*;
 
 public class Entity {
 
-    // Properties an Entity can have
-    public enum Property {
-        DEFEAT {
-            @Override
-            void onTouch(Entity self, Entity other) {
-                if (other.has(YOU) && self.isSameFloat(other)) {
-                    other.playSE(4, 3);
-                    other.kill();
-                }
-            }
-        },
-        FLOAT,
-        HOT {
-            @Override
-            void onTouch(Entity self, Entity other) {
-                if (other.has(MELT) && self.isSameFloat(other)) {
-                    other.kill();
-                }
-            }
-        },
-        MELT,
-        OPEN {
-            @Override
-            void onTouch(Entity self, Entity other) {
-                if (other.has(SHUT)) {
-                    self.playSE(4, 2);
-                    self.kill();
-                    other.kill();
-                }
-            }
-        },
-        PUSH {
-            @Override
-            boolean allowsPush(Entity self) {
-                return !self.has(SWAP);
-            }
-        },
-        SHIFT {
-            @Override
-            void onTouch(Entity self, Entity other) {
-                if (self.isSameFloat(other) && !self.has(PUSH)) {
-                    other.move(self.getDirection());
-                }
-            }
-        },
-        SHUT {
-            @Override
-            boolean blocksMovement(Entity self, Entity mover, Direction dir) {
-                return !mover.has(OPEN);
-            }
-        },
-        SINK {
-            @Override
-            void onTouch(Entity self, Entity other) {
-                // Both must be floating or not floating
-                if (self.isSameFloat(other)) {
-                    other.playSE(4, 1);
-                    self.kill();
-                    other.kill();
-                }
-            }
-        },
-        STOP {
-            @Override
-            boolean blocksMovement(Entity self, Entity mover, Direction dir) {
-                return !self.has(SHUT) || !mover.has(OPEN);
-            }
-        },
-        SWAP {
-            @Override
-            boolean blocksMovement(Entity self, Entity mover, Direction dir) {
-                Point otherPoint = mover.getPoint();
-
-                mover.setPreviousPoint(self.getPoint());
-                mover.setReversing(true);
-
-                self.setPreviousPoint(otherPoint);
-                self.setReversing(true);
-
-                return false;
-            }
-        },
-        WEAK {
-            @Override
-            void onTouch(Entity self, Entity other) {
-                // Both must be floating or not floating
-                if (!(other instanceof WordEntity) && self.isSameFloat(other)) {
-                    self.playSE(4, 0);
-                    self.kill();
-                }
-            }
-        },
-        WIN {
-            @Override
-            void onTouch(Entity self, Entity other) {
-                if (other.has(YOU) && self.isSameFloat(other)) {
-                    self.playSE(1, 1);
-                    self.gp.win = true;
-                }
-            }
-        },
-        YOU;
-
-        void onTouch(Entity self, Entity other) {}
-        boolean blocksMovement(Entity self, Entity mover, Direction dir) {
-            return false;
-        }
-        boolean allowsPush(Entity self) {
-            return false;
-        }
-    }
-
     // Empty enum list to hold properties
-    private final EnumSet<Entity.Property> properties = EnumSet.noneOf(Entity.Property.class);
+    private final EnumSet<Properties> properties = EnumSet.noneOf(Properties.class);
 
     protected GamePanel gp;
 
@@ -146,7 +35,7 @@ public class Entity {
     private final int speed = 6;
     private boolean moving = false;
     private boolean reversing = false;
-    private final ArrayList<Entity> heldEntities = new ArrayList<>();
+    private final List<Entity> heldEntities = new ArrayList<>();
     private boolean lockTransformation = false;
 
     /* SPRITE ATTRIBUTES */
@@ -204,76 +93,11 @@ public class Entity {
     }
 
     public boolean isSameFloat(Entity other) {
-        return ((other.has(Property.FLOAT) && has(Property.FLOAT)) || (!other.has(Property.FLOAT) && !has(Property.FLOAT)));
+        return ((other.has(Properties.FLOAT) && has(Properties.FLOAT)) || (!other.has(Properties.FLOAT) && !has(Properties.FLOAT)));
     }
 
-    public boolean ruleApplies(String preposition, Entity target) {
-
-        return switch (preposition) {
-            case WORD_On.wordName -> on(target);
-            case WORD_Near.wordName -> near(target);
-            case WORD_Next.wordName -> next(target);
-            case WORD_Facing.wordName -> facing(target);
-            case WORD_Seeing.wordName -> seeing(target);
-            default -> false;
-        };
-    }
-
-    public boolean has(Property p) {
+    public boolean has(Properties p) {
         return properties.contains(p);
-    }
-    private boolean on(Entity target) {
-        return getPoint().equals(target.getPoint());
-    }
-    private boolean near(Entity target) {
-        int dx = Math.abs(target.getPoint().x - getPoint().x);
-        int dy = Math.abs(target.getPoint().y - getPoint().y);
-
-        return dx <= gp.tileSize && dy <= gp.tileSize && !(dx == 0 && dy == 0);
-    }
-    private boolean next(Entity target) {
-        int dx = Math.abs(target.getPoint().x - getPoint().x);
-        int dy = Math.abs(target.getPoint().y - getPoint().y);
-
-        return (dx == gp.tileSize && dy == 0) || (dy == gp.tileSize && dx == 0);
-    }
-    private boolean facing(Entity target) {
-        Point p = switch (direction) {
-            case UP -> new Point(point.x, point.y - gp.tileSize);
-            case DOWN -> new Point(point.x, point.y + gp.tileSize);
-            case LEFT -> new Point(point.x - gp.tileSize, point.y);
-            case RIGHT -> new Point(point.x + gp.tileSize, point.y);
-        };
-
-        return target.getPoint().equals(p);
-    }
-    private boolean seeing(Entity target) {
-
-        int dx = 0;
-        int dy = 0;
-
-        switch (direction) {
-            case UP -> dy = -gp.tileSize;
-            case DOWN -> dy = gp.tileSize;
-            case LEFT -> dx =- gp.tileSize;
-            case RIGHT -> dx = gp.tileSize;
-        }
-
-        int x = point.x + dx;
-        int y = point.y + dy;
-
-        while (!gp.cChecker.isOutOfBounds(x, y)) {
-            for (Entity e : gp.entities) {
-                if (e.getPoint().x == x && e.getPoint().y == y) {
-                    return e.getName().equals(target.getName());
-                }
-            }
-
-            x += dx;
-            y += dy;
-        }
-
-        return false;
     }
 
     /**
@@ -331,7 +155,7 @@ public class Entity {
     }
 
     public void checkEntities() {
-        if (has(Property.DEFEAT) && has(Property.YOU)) {
+        if (has(Properties.DEFEAT) && has(Properties.YOU)) {
             kill();
             return;
         }
@@ -345,7 +169,7 @@ public class Entity {
         }
     }
     private void onTouch(Entity other) {
-        for (Property p : properties) {
+        for (Properties p : properties) {
             p.onTouch(this, other);
         }
     }
@@ -361,6 +185,10 @@ public class Entity {
         pixelCounter = 0;
         spriteNum = 1;
         spriteCounter = 0;
+
+        if (this instanceof WordEntity) {
+            gp.wordMoved = true;
+        }
     }
 
     /**
@@ -401,7 +229,7 @@ public class Entity {
         return false;
     }
     private boolean blocks(Entity mover, GamePanel.Direction dir) {
-        for (Property p : properties) {
+        for (Properties p : properties) {
             if (p.blocksMovement(this, mover, dir)) {
                 return true;
             }
@@ -413,7 +241,7 @@ public class Entity {
             return true;
         }
 
-        for (Property p : properties) {
+        for (Properties p : properties) {
             if (p.allowsPush(this)) {
                 return true;
             }
@@ -427,7 +255,7 @@ public class Entity {
         this.moving = true;
         setPreviousPoint(point);
     }
-    private void kill() {
+    public void kill() {
         if (!alive) return;
 
         boolean stayAlive = false;
@@ -455,6 +283,9 @@ public class Entity {
 
         alive = false;
         resetMovement();
+    }
+    public void win() {
+        gp.win = true;
     }
 
     /**
@@ -508,16 +339,14 @@ public class Entity {
         return sprite;
     }
 
-    public void addProperty(Property property) {
+    public void addProperty(Properties property) {
         properties.add(property);
     }
     public void clearProperties() {
         properties.clear();
-        heldEntities.clear();
-        lockTransformation = false;
     }
 
-    private void playSE(int category, int record) {
+    public void playSE(int category, int record) {
         gp.playSE(category, record);
     }
 
@@ -579,6 +408,9 @@ public class Entity {
 
     public void giveHeldEntity(Entity heldEntity) {
         this.heldEntities.add(heldEntity);
+    }
+    public List<Entity> getHeldEntities() {
+        return heldEntities;
     }
 
     public boolean getTransformationLock() {

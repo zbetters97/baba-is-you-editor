@@ -1,4 +1,4 @@
-package data;
+package state;
 
 import application.GamePanel;
 

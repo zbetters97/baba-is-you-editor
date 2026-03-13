@@ -2,6 +2,8 @@ package application;
 
 import data.*;
 import entity.*;
+import rules.LogicHandler;
+import state.StateHandler;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,7 +13,7 @@ import java.util.*;
 
 import static application.GamePanel.Direction.*;
 import static application.GamePanel.Direction.RIGHT;
-import static entity.Entity.Property.YOU;
+import static rules.Properties.YOU;
 
 public class GamePanel extends JPanel implements Runnable {
 
@@ -81,6 +83,7 @@ public class GamePanel extends JPanel implements Runnable {
 
     public boolean canLoad = false;
     private boolean entitiesWereMoving = false;
+    public boolean wordMoved = false;
     private boolean rewinding = false;
 
     public boolean showGrid = true;
@@ -243,8 +246,9 @@ public class GamePanel extends JPanel implements Runnable {
             entities.addAll(spawnQueue);
             spawnQueue.clear();
 
-            // Override flag to check for rules
+            // Override flags to check for rules
             entitiesWereMoving = true;
+            wordMoved = true;
         }
     }
 
@@ -325,6 +329,10 @@ public class GamePanel extends JPanel implements Runnable {
             }
 
             moveSet.add(e);
+
+            if (e instanceof WordEntity) {
+                wordMoved = true;
+            }
         }
 
         // Entities can move
@@ -355,6 +363,7 @@ public class GamePanel extends JPanel implements Runnable {
             // Check rules if rewind not applied
             if (!rewinding) {
                 lHandler.scanForRules();
+                lHandler.applyConditionalRules();
             }
         }
     }
@@ -364,11 +373,16 @@ public class GamePanel extends JPanel implements Runnable {
         // Check if entities are currently moving
         boolean movingNow = entitiesMoving();
 
-        // Any entity was moving and then stopped
+        // No entities moving
         if (entitiesWereMoving && !movingNow) {
 
-            // Only scan rules if a word moves or redo finishes
-            lHandler.scanForRules();
+            // Scan static rules if a word moved
+            if (wordMoved) {
+                lHandler.scanForRules();
+            }
+
+            // Check conditional rules after every move
+            lHandler.applyConditionalRules();
 
             // Check for entity rules if not redo
             if (!rewinding) {
@@ -377,10 +391,10 @@ public class GamePanel extends JPanel implements Runnable {
                 }
             }
 
+            wordMoved = false;
             rewinding = false;
         }
 
-        // Capture if entities are currently moving
         entitiesWereMoving = movingNow;
     }
 
@@ -495,6 +509,7 @@ public class GamePanel extends JPanel implements Runnable {
         stopMusic();
         win = false;
         stateHandler.clearData();
+        lHandler.clearRules();
         lHandler.scanForRules();
         ui.editing_GetEntity();
         playMusic(0, 1);
