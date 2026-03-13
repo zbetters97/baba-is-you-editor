@@ -203,13 +203,9 @@ public class Entity {
         return image;
     }
 
-    public boolean has(Property p) {
-        return properties.contains(p);
-    }
     public boolean isSameFloat(Entity other) {
         return ((other.has(Property.FLOAT) && has(Property.FLOAT)) || (!other.has(Property.FLOAT) && !has(Property.FLOAT)));
     }
-
 
     public boolean ruleApplies(String preposition, Entity target) {
 
@@ -223,24 +219,24 @@ public class Entity {
         };
     }
 
-    protected boolean on(Entity target) {
+    public boolean has(Property p) {
+        return properties.contains(p);
+    }
+    private boolean on(Entity target) {
         return getPoint().equals(target.getPoint());
     }
-
     private boolean near(Entity target) {
         int dx = Math.abs(target.getPoint().x - getPoint().x);
         int dy = Math.abs(target.getPoint().y - getPoint().y);
 
         return dx <= gp.tileSize && dy <= gp.tileSize && !(dx == 0 && dy == 0);
     }
-
     private boolean next(Entity target) {
         int dx = Math.abs(target.getPoint().x - getPoint().x);
         int dy = Math.abs(target.getPoint().y - getPoint().y);
 
         return (dx == gp.tileSize && dy == 0) || (dy == gp.tileSize && dx == 0);
     }
-
     private boolean facing(Entity target) {
         Point p = switch (direction) {
             case UP -> new Point(point.x, point.y - gp.tileSize);
@@ -251,7 +247,6 @@ public class Entity {
 
         return target.getPoint().equals(p);
     }
-
     private boolean seeing(Entity target) {
 
         int dx = 0;
@@ -260,7 +255,7 @@ public class Entity {
         switch (direction) {
             case UP -> dy = -gp.tileSize;
             case DOWN -> dy = gp.tileSize;
-            case LEFT -> dx = -gp.tileSize;
+            case LEFT -> dx =- gp.tileSize;
             case RIGHT -> dx = gp.tileSize;
         }
 
@@ -270,7 +265,7 @@ public class Entity {
         while (!gp.cChecker.isOutOfBounds(x, y)) {
             for (Entity e : gp.entities) {
                 if (e.getPoint().x == x && e.getPoint().y == y) {
-                    return (e.getName().equals(target.getName()));
+                    return e.getName().equals(target.getName());
                 }
             }
 
@@ -336,6 +331,11 @@ public class Entity {
     }
 
     public void checkEntities() {
+        if (has(Property.DEFEAT) && has(Property.YOU)) {
+            kill();
+            return;
+        }
+
         ArrayList<Entity> targets = gp.cChecker.checkEntity(this);
 
         if (targets.isEmpty()) return;
