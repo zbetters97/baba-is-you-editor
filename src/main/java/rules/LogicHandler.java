@@ -51,6 +51,7 @@ public class LogicHandler {
     public boolean rulesInitialized = false;
 
     private final Set<Rule> activeRules = new HashSet<>();
+    private final Set<Rule> staticRules = new HashSet<>();
     private final Set<Rule> conditionalRules = new HashSet<>();
 
     public LogicHandler(GamePanel gp) {
@@ -88,10 +89,11 @@ public class LogicHandler {
             playRuleSound();
         }
 
+        staticRules.clear();
+        staticRules.addAll(newStaticRules);
+
         conditionalRules.clear();
         conditionalRules.addAll(newConditionalRules);
-
-        applyStaticRules(newStaticRules);
 
         activeRules.clear();
         activeRules.addAll(newRules);
@@ -103,11 +105,16 @@ public class LogicHandler {
         gp.playSE(3, 0);
     }
 
-    private void applyStaticRules(Set<Rule> newStaticRules) {
+    public void resetEntityRuleStates() {
+        for (Entity e : gp.entities) {
+            e.clearProperties();
+            e.setTransformationLock(false);
+        }
+    }
 
-        resetEntityRuleStates();
+    public void applyStaticRules() {
 
-        for (Rule rule : newStaticRules) {
+        for (Rule rule : staticRules) {
             if (rule.getTransformation() != null) {
                 for (Entity e : gp.entities) {
                     if ((e.getName().equals(rule.getSubject()) || (rule.getSubject().equals("TEXT") && e instanceof WordEntity)) &&
@@ -118,7 +125,7 @@ public class LogicHandler {
             }
         }
 
-        for (Rule rule : newStaticRules) {
+        for (Rule rule : staticRules) {
             for (Entity e : gp.entities) {
                 if (e.getName().equals(rule.getSubject()) || (rule.getSubject().equals("TEXT") && e instanceof WordEntity)) {
                     rule.runRule(e);
@@ -128,9 +135,6 @@ public class LogicHandler {
     }
 
     public void applyConditionalRules() {
-
-        resetEntityRuleStates();
-
         for (Rule rule : conditionalRules) {
             for (Entity e : gp.entities) {
                 if (e.getName().equals(rule.getSubject()) || (rule.getSubject().equals("TEXT") && e instanceof WordEntity)) {
@@ -140,11 +144,11 @@ public class LogicHandler {
         }
     }
 
-    private void resetEntityRuleStates() {
-        for (Entity e : gp.entities) {
-            e.clearProperties();
-            e.setTransformationLock(false);
-        }
+    public void initRules() {
+        scanForRules();
+        resetEntityRuleStates();
+        applyStaticRules();
+        applyConditionalRules();
     }
 
     /**

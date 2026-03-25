@@ -26,10 +26,10 @@ public class EntityGenerator {
     public EntityGenerator(GamePanel gp) {
         // Characters
         characterFactory.put(CHR_Baba.chrName, () -> new CHR_Baba(gp, 0, 0));
+        characterFactory.put(CHR_Bat.chrName, () -> new CHR_Bat(gp, 0, 0));
         characterFactory.put(CHR_Keke.chrName, () -> new CHR_Keke(gp, 0, 0));
 
         // Objects
-        objectFactory.put(OBJ_Bat.objName, () -> new OBJ_Bat(gp, 0, 0));
         objectFactory.put(OBJ_Box.objName, () -> new OBJ_Box(gp, 0, 0));
         objectFactory.put(OBJ_Door.objName, () -> new OBJ_Door(gp, 0, 0));
         objectFactory.put(OBJ_Flag.objName, () -> new OBJ_Flag(gp, 0, 0));

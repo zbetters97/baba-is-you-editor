@@ -657,9 +657,9 @@ public class UI {
     }
     private void editing_menu() {
 
-        int baseX = (int) (gp.tileSize * 12.5);
+        int baseX = (int) (gp.tileSize * 11.5);
         int baseY = (int) (gp.tileSize * 7.5);
-        int width = gp.tileSize * 8;
+        int width = (int) (gp.tileSize * 9.55);
         int height = gp.tileSize * 2;
         g2.setColor(new Color(0, 0, 0, 235));
         g2.fillRoundRect(baseX, baseY, width, height, 0, 0);

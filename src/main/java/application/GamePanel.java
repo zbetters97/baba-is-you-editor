@@ -362,8 +362,7 @@ public class GamePanel extends JPanel implements Runnable {
 
             // Check rules if rewind not applied
             if (!rewinding) {
-                lHandler.scanForRules();
-                lHandler.applyConditionalRules();
+                lHandler.initRules();
             }
         }
     }
@@ -381,7 +380,8 @@ public class GamePanel extends JPanel implements Runnable {
                 lHandler.scanForRules();
             }
 
-            // Check conditional rules after every move
+            lHandler.resetEntityRuleStates();
+            lHandler.applyStaticRules();
             lHandler.applyConditionalRules();
 
             // Check for entity rules if not redo
@@ -510,7 +510,7 @@ public class GamePanel extends JPanel implements Runnable {
         win = false;
         stateHandler.clearData();
         lHandler.clearRules();
-        lHandler.scanForRules();
+        lHandler.initRules();
         ui.editing_GetEntity();
         playMusic(0, 1);
     }
