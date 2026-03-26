@@ -1,6 +1,5 @@
 package data;
 
-import application.GamePanel;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.*;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -9,44 +8,46 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.UserRecord;
 
+import javax.swing.*;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.List;
 
 public class Auth {
 
-    private final GamePanel gp;
-
     private UserRecord user;
-    private String token;
 
-    public Auth(GamePanel gp) {
-        this.gp = gp;
+    public Auth() {
     }
 
     public String authorize() {
 
-        String CLIENT_ID = "591720453527-9sssrca7oee6qsh0tjcl7ue3kbum2uep.apps.googleusercontent.com";
-        String CLIENT_SECRET = "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";
-
-        GoogleClientSecrets clientSecrets = new GoogleClientSecrets()
-                .setInstalled(new GoogleClientSecrets.Details()
-                        .setClientId(CLIENT_ID)
-                        .setClientSecret(CLIENT_SECRET));
-
-        GoogleAuthorizationCodeFlow flow =
-                new GoogleAuthorizationCodeFlow.Builder(
-                        new NetHttpTransport(),
-                        GsonFactory.getDefaultInstance(),
-                        clientSecrets,
-                        List.of("openid", "email", "profile")
-                )
-                        .setAccessType("offline")
-                        .build();
-
-        LocalServerReceiver receiver = new LocalServerReceiver.Builder()
-                .setPort(-1)
-                .build();
-
         try {
+            InputStream in = getClass()
+                    .getClassLoader()
+                    .getResourceAsStream("db/oauth.json");
+
+            assert in != null;
+            GoogleClientSecrets clientSecrets =
+                    GoogleClientSecrets.load(
+                            GsonFactory.getDefaultInstance(),
+                            new InputStreamReader(in)
+                    );
+
+            GoogleAuthorizationCodeFlow flow =
+                    new GoogleAuthorizationCodeFlow.Builder(
+                            new NetHttpTransport(),
+                            GsonFactory.getDefaultInstance(),
+                            clientSecrets,
+                            List.of("openid", "email", "profile")
+                    )
+                            .setAccessType("offline")
+                            .build();
+
+            LocalServerReceiver receiver = new LocalServerReceiver.Builder()
+                    .setPort(-1)
+                    .build();
+
             String redirectUri = receiver.getRedirectUri();
 
             String authorizationUrl = flow.newAuthorizationUrl()
@@ -88,8 +89,6 @@ public class Auth {
                     new UserRecord.CreateRequest().setEmail(email)
             );
         }
-
-        token = FirebaseAuth.getInstance().createCustomToken(user.getUid());
     }
 
     public String getUserId() {
@@ -105,7 +104,6 @@ public class Auth {
     }
 
     public void logout() {
-        token = null;
         user = null;
     }
 }

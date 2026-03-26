@@ -16,6 +16,9 @@ out/
 # Firebase secrets
 **/firebase-key.json
 
+# Google Auth secrets
+**/oauth.json
+
 ### Eclipse ###
 .apt_generated
 .classpath

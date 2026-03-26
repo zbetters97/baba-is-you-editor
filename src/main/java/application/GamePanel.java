@@ -66,7 +66,7 @@ public class GamePanel extends JPanel implements Runnable {
     private final LogicHandler lHandler = new LogicHandler(this);
     private final StateHandler stateHandler = new StateHandler(this);
 
-    public Auth auth = new Auth(this);
+    public Auth auth = new Auth();
     public Firebase db = new Firebase(this);
     public boolean dbConnected = false;
     public SaveLoad saveLoad = new SaveLoad(this);
