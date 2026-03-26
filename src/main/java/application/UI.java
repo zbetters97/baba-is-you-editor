@@ -166,12 +166,8 @@ public class UI {
         else if (subState == 5) {
             drawEditing_Settings();
         }
-        // SET USERNAME
-        else if (subState == 6) {
-            drawEditing_Username();
-        }
         // LEVEL NAME
-        else if (subState == 7) {
+        else if (subState == 6) {
             drawEditing_SaveName();
         }
     }
@@ -213,6 +209,8 @@ public class UI {
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
 
+                if (!gp.auth.isLoggedIn()) return;
+
                 gp.isUploading = true;
                 gp.saveLoad.saveToData("temp");
                 gp.gameState = gp.playState;
@@ -228,6 +226,8 @@ public class UI {
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
 
+                if (!gp.auth.isLoggedIn()) return;
+
                 commandNum = 0;
                 subState = 2;
             }
@@ -241,7 +241,7 @@ public class UI {
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
 
-                if (gp.saveFiles.isEmpty()) return;
+                if (gp.saveFiles.isEmpty() || !gp.auth.isLoggedIn()) return;
 
                 commandNum = 0;
                 subState = 3;
@@ -256,7 +256,7 @@ public class UI {
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
 
-                if (gp.saveFiles.isEmpty()) return;
+                if (gp.saveFiles.isEmpty() || !gp.auth.isLoggedIn()) return;
 
                 commandNum = 0;
                 subState = 4;
@@ -344,7 +344,7 @@ public class UI {
                 if (gp.keyH.aPressed) {
                     gp.keyH.aPressed = false;
                     commandNum = 0;
-                    subState = 7;
+                    subState = 6;
                 }
             }
 
@@ -521,17 +521,16 @@ public class UI {
             }
         }
 
-        // USERNAME
+        // Login / Logout
         y += gp.tileSize;
-        g2.drawString("Change Username", x, y);
+        String authTitle = gp.auth.isLoggedIn() ? "Logout" : "Login";
+        g2.drawString(authTitle, x, y);
         if (commandNum == 4) {
             g2.drawString(">", x - 25, y);
 
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
-                textInput = gp.username;
-                commandNum = 0;
-                subState = 6;
+                gp.changeLogin();
             }
         }
 
@@ -582,17 +581,10 @@ public class UI {
             gp.keyH.downPressed = false;
 
             commandNum++;
-            if (commandNum > 3) {
-                commandNum = 3;
+            if (commandNum > 4) {
+                commandNum = 4;
             }
         }
-    }
-    private void drawEditing_Username() {
-        g2.setColor(Color.WHITE);
-        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 32F));
-
-        drawKeyboard("Please enter your username", 10);
-        handleKeyboardInput();
     }
 
     private void drawEditing_Menu() {
@@ -998,35 +990,16 @@ public class UI {
             else if (commandNum == keyboardLetters.length() + 2) {
                 textInput = "";
                 capital = true;
-
-                // Saving username
-                if (subState == 6) {
-                    commandNum = 4;
-                    subState = 5;
-                }
-                // Saving level
-                else {
-                    commandNum = 0;
-                    subState = 2;
-                }
-
+                commandNum = 0;
+                subState = 2;
             }
             // SUBMIT BUTTON
             else if (commandNum == keyboardLetters.length() + 3) {
                 if (textInput.length() < 3 || textInput.length() > MAX_LVL_NAME) return;
 
-                // Saving username
-                if (subState == 6) {
-                    gp.username = textInput;
-                    commandNum = 4;
-                    subState = 5;
-                }
-                // Saving level
-                else if (subState == 7) {
-                    gp.saveLoad.save(textInput, "");
-                    commandNum = 0;
-                    subState = 1;
-                }
+                gp.saveLoad.save(textInput, "");
+                commandNum = 0;
+                subState = 1;
 
                 textInput = "";
                 capital = true;

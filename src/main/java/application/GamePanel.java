@@ -8,7 +8,6 @@ import state.StateHandler;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.util.*;
 
 import static application.GamePanel.Direction.*;
@@ -29,7 +28,6 @@ public class GamePanel extends JPanel implements Runnable {
     private Thread gameThread;
 
     public ConfigManager config = new ConfigManager(this);
-    public File saveDir = new File(System.getProperty("user.home") + "/baba-conf/");
 
     /* UTILITIES / UI */
     public static UtilityTool utility = new UtilityTool();
@@ -68,12 +66,12 @@ public class GamePanel extends JPanel implements Runnable {
     private final LogicHandler lHandler = new LogicHandler(this);
     private final StateHandler stateHandler = new StateHandler(this);
 
+    public Auth auth = new Auth(this);
     public Firebase db = new Firebase(this);
     public boolean dbConnected = false;
     public SaveLoad saveLoad = new SaveLoad(this);
     public DataStorage levelProgress = new DataStorage();
     public Map<String, String> saveFiles = new LinkedHashMap<>();
-    public String username = "";
     public String levelPath = "";
     public boolean isUploading = false;
 
@@ -81,16 +79,14 @@ public class GamePanel extends JPanel implements Runnable {
     public ArrayList<Entity> entities = new ArrayList<>();
     public ArrayList<Entity> spawnQueue = new ArrayList<>();
 
-    public boolean canLoad = false;
+    private boolean canLoad = false;
     private boolean entitiesWereMoving = false;
     public boolean wordMoved = false;
     private boolean rewinding = false;
+    private int cooldown = 0;
 
     public int song = 0;
-    public boolean showGrid = true;
     public boolean win = false;
-
-    private int cooldown = 0;
 
     /**
      * CONSTRUCTOR
@@ -109,7 +105,7 @@ public class GamePanel extends JPanel implements Runnable {
      * Prepares the game with default settings
      * Called by Driver
      */
-    protected void setupGame()  {
+    protected void setupGame() {
 
         // Temp game window (before drawing to window)
         tempScreen = new BufferedImage(screenWidth, screenHeight, BufferedImage.TYPE_INT_ARGB);
@@ -117,11 +113,6 @@ public class GamePanel extends JPanel implements Runnable {
 
         // Connect to Firebase
         dbConnected = db.init();
-
-        // Retrieve save files from Firebase (K: file name, V: created date)
-        if (dbConnected) {
-            saveFiles = db.getSaveFileNames();
-        }
 
         gameState = editState;
         playMusic(0, 0);
@@ -405,7 +396,6 @@ public class GamePanel extends JPanel implements Runnable {
             isUploading = false;
 
             saveLoad.loadFromData();
-            showGrid = true;
             gameState = editState;
             ui.subState = 2;
 
@@ -415,15 +405,10 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     private void handleConfigInput() {
-        if (keyH.yPressed) {
-            keyH.yPressed = false;
-            showGrid = !showGrid;
-        }
-        else if (keyH.startPressed) {
+        if (keyH.startPressed) {
             keyH.startPressed = false;
 
             isUploading = false;
-            showGrid = true;
             lHandler.rulesInitialized = false;
             saveLoad.loadFromData();
             gameState = editState;
@@ -516,11 +501,34 @@ public class GamePanel extends JPanel implements Runnable {
         playMusic(0, song);
     }
 
+    public void changeLogin() {
+        if (auth.isLoggedIn()) {
+            auth.logout();
+            saveFiles.clear();
+            return;
+        }
+
+        try {
+            // Attempt to log in via Google on the web browser
+            String idToken = auth.authorize();
+            auth.login(idToken);
+
+            levelPath = "levels/" + auth.getUserId() + "/";
+
+            // Retrieve save files from Firebase (K: file name, V: created date)
+            if (dbConnected) {
+                saveFiles = db.getSaveFileNames();
+            }
+        }
+        catch (Exception e) {
+            System.out.println("Error logging in: " + e.getMessage());
+        }
+    }
+
     public void playSE(int category, int record) {
         se.setFile(category, record);
         se.play();
     }
-
     public void playMusic(int category, int record) {
         int loopStart = music.getLoopStart(category, record);
         music.setFile(category, record);

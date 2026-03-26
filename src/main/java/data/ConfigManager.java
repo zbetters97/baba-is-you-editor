@@ -7,6 +7,7 @@ import java.io.*;
 public class ConfigManager {
 
     private final GamePanel gp;
+    private final File saveDir = new File(System.getProperty("user.home") + "/baba-conf/");
 
     public ConfigManager(GamePanel gp) {
         this.gp = gp;
@@ -16,10 +17,7 @@ public class ConfigManager {
 
         try {
             // IMPORT FILE
-            BufferedWriter bw = new BufferedWriter(new FileWriter(gp.saveDir + File.separator + "config.txt"));
-
-            bw.write("USERNAME\n" + gp.username);
-            bw.newLine();
+            BufferedWriter bw = new BufferedWriter(new FileWriter(saveDir + File.separator + "config.txt"));
 
             // FULLSCREEN
             bw.write("FULLSCREEN\n" + gp.fullScreenOn);
@@ -45,18 +43,12 @@ public class ConfigManager {
 
         try {
             // IMPORT FILE
-            BufferedReader br = new BufferedReader(new FileReader(gp.saveDir + File.separator + "config.txt"));
+            BufferedReader br = new BufferedReader(new FileReader(saveDir + File.separator + "config.txt"));
 
-            br.readLine();
-
-            // USERNAME
-            String s = br.readLine();
-            gp.username = s;
-            gp.levelPath = "levels/" + gp.username + "/";
             br.readLine();
 
             // FULL SCREEN
-            s = br.readLine();
+            String s = br.readLine();
             gp.fullScreenOn = Boolean.parseBoolean(s);
             br.readLine();
 
@@ -74,10 +66,6 @@ public class ConfigManager {
         }
         catch (Exception e) {
             System.out.println(e.getMessage());
-
-            // USERNAME
-            gp.username = "steelpro";
-            gp.levelPath = "levels/" + gp.username + "/";
 
             // FULL SCREEN
             gp.fullScreenOn = false;
