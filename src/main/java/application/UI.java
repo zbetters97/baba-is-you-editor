@@ -35,6 +35,8 @@ public class UI {
 
     private boolean wasYPressed = false;
 
+    private Map<String, String> usersList = new HashMap<>();
+
     public String textInput = "";
     private final Map<Integer, String> keyboard = new LinkedHashMap<>();
     private boolean capital = true;
@@ -170,6 +172,10 @@ public class UI {
         else if (subState == 6) {
             drawEditing_SaveName();
         }
+        // ONLINE LEVELS
+        else if (subState == 7) {
+            drawEditing_Users();
+        }
     }
 
     private void drawEditing_Pause() {
@@ -179,8 +185,8 @@ public class UI {
 
         int x = gp.tileSize * 2;
         int y = gp.tileSize * 2;
-        int width = gp.tileSize * 4;
-        int height = (int) (gp.tileSize * 7.5);
+        int width = gp.tileSize * 5;
+        int height = (int) (gp.tileSize * 9.5);
         drawSubWindow(x, y, width, height);
 
         x = gp.tileSize * 3;
@@ -277,16 +283,45 @@ public class UI {
             }
         }
 
+        // ONLINE LEVELS
+        y += gp.tileSize;
+        g2.drawString("Online", x, y);
+        if (commandNum == 6) {
+            g2.drawString(">", x - 25, y);
+            if (gp.keyH.aPressed) {
+                gp.keyH.aPressed = false;
+
+                usersList = gp.db.getAllUsers();
+                if (usersList != null && !usersList.isEmpty()) {
+                    commandNum = 0;
+                    subState = 7;
+                }
+            }
+        }
+
         // SETTINGS
         y += gp.tileSize;
         g2.drawString("Settings", x, y);
-        if (commandNum == 6) {
+        if (commandNum == 7) {
             g2.drawString(">", x - 25, y);
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
 
                 commandNum = 0;
                 subState = 5;
+            }
+        }
+
+        // Login / Logout
+        y += gp.tileSize;
+        String authTitle = gp.auth.isLoggedIn() ? "Logout" : "Login";
+        g2.drawString(authTitle, x, y);
+        if (commandNum == 8) {
+            g2.drawString(">", x - 25, y);
+
+            if (gp.keyH.aPressed) {
+                gp.keyH.aPressed = false;
+                gp.changeLogin();
             }
         }
 
@@ -309,8 +344,8 @@ public class UI {
             gp.keyH.downPressed = false;
 
             commandNum++;
-            if (commandNum > 6) {
-                commandNum = 6;
+            if (commandNum > 8) {
+                commandNum = 8;
             }
         }
     }
@@ -422,6 +457,72 @@ public class UI {
         handleKeyboardInput();
     }
 
+    private void drawEditing_Users() {
+
+        if (usersList == null || usersList.isEmpty()) return;
+
+        g2.setColor(Color.WHITE);
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 32F));
+
+        int x = gp.tileSize * 2;
+        int y = gp.tileSize * 2;
+        int width = gp.tileSize * 20;
+        int height = (int) ((gp.tileSize * .95) * (usersList.size() + 1));
+        drawSubWindow(x, y, width, height);
+
+        x = gp.tileSize * 3;
+        y = gp.tileSize * 3;
+        String text;
+
+        int index = 0;
+
+        for (Map.Entry<String, String> entry : usersList.entrySet()) {
+
+            text = index + 1 + ")  " + entry.getValue();
+            g2.drawString(text, x, y);
+
+            if (commandNum == index) {
+                g2.drawString(">", x - 25, y);
+
+                if (gp.keyH.aPressed) {
+                    gp.keyH.aPressed = false;
+
+                    commandNum = 0;
+                    subState = 3;
+
+                    gp.saveFiles = gp.db.getUserLevels(entry.getKey());
+                }
+            }
+
+            index++;
+            y += gp.tileSize;
+        }
+
+        if (gp.keyH.bPressed || gp.keyH.startPressed) {
+            gp.keyH.bPressed = false;
+            gp.keyH.startPressed = false;
+            commandNum = 6;
+            subState = 1;
+        }
+
+        if (gp.keyH.upPressed) {
+            gp.keyH.upPressed = false;
+
+            commandNum--;
+            if (commandNum < 0) {
+                commandNum = 0;
+            }
+        }
+        else if (gp.keyH.downPressed) {
+            gp.keyH.downPressed = false;
+
+            commandNum++;
+
+            if (commandNum > usersList.size()) {
+                commandNum = usersList.size();
+            }
+        }
+    }
     private void drawEditing_Settings() {
 
         g2.setColor(Color.WHITE);
@@ -430,7 +531,7 @@ public class UI {
         int x = gp.tileSize * 2;
         int y = gp.tileSize * 2;
         int width = gp.tileSize * 9;
-        int height = (int) (gp.tileSize * 5.5);
+        int height = (int) (gp.tileSize * 4.5);
         drawSubWindow(x, y, width, height);
 
         x = gp.tileSize * 3;
@@ -521,19 +622,6 @@ public class UI {
             }
         }
 
-        // Login / Logout
-        y += gp.tileSize;
-        String authTitle = gp.auth.isLoggedIn() ? "Logout" : "Login";
-        g2.drawString(authTitle, x, y);
-        if (commandNum == 4) {
-            g2.drawString(">", x - 25, y);
-
-            if (gp.keyH.aPressed) {
-                gp.keyH.aPressed = false;
-                gp.changeLogin();
-            }
-        }
-
         // FULL SCREEN CHECK BOX
         x = gp.tileSize * 8;
         y = (int) (gp.tileSize * 2.5);
@@ -565,7 +653,7 @@ public class UI {
             gp.keyH.startPressed = false;
 
             gp.config.saveConfig();
-            commandNum = 6;
+            commandNum = 7;
             subState = 1;
         }
 
@@ -581,8 +669,8 @@ public class UI {
             gp.keyH.downPressed = false;
 
             commandNum++;
-            if (commandNum > 4) {
-                commandNum = 4;
+            if (commandNum > 3) {
+                commandNum = 3;
             }
         }
     }

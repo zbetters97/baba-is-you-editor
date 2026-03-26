@@ -116,7 +116,7 @@ public record SaveLoad(GamePanel gp) {
             gp.db.uploadLevel(tempFile);
 
             // Update stored save files
-            gp.saveFiles = gp.db.getSaveFileNames();
+            gp.saveFiles = gp.db.getUserLevels(gp.auth.getUserId());
         }
         catch (Exception e) {
             System.out.println("Error saving level: " + e.getMessage());
@@ -194,7 +194,7 @@ public record SaveLoad(GamePanel gp) {
         if (!gp.dbConnected) return;
 
         if (gp.db.deleteLevel(fileName)) {
-            gp.saveFiles = gp.db.getSaveFileNames();
+            gp.saveFiles = gp.db.getUserLevels(gp.auth.getUserId());
         }
     }
 }

@@ -21,7 +21,6 @@ public class Auth {
     }
 
     public String authorize() {
-
         try {
             InputStream in = getClass()
                     .getClassLoader()
@@ -97,6 +96,17 @@ public class Auth {
         }
 
         return null;
+    }
+
+    public String getEmailFromUid(String uid) {
+        try {
+            UserRecord user = FirebaseAuth.getInstance().getUser(uid);
+            return user.getEmail();
+        }
+        catch (Exception e) {
+            System.out.println("Error getting user: " + e.getMessage());
+            return null;
+        }
     }
 
     public boolean isLoggedIn() {

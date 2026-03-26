@@ -103,7 +103,7 @@ public record Firebase(GamePanel gp) {
         }
     }
 
-    public Map<String, String> getSaveFileNames() {
+    public Map<String, String> getUserLevels(String userId) {
         try {
             // String map to store save file names and dates
             Map<String, String> fileNames = new LinkedHashMap<>();
@@ -113,7 +113,7 @@ public record Firebase(GamePanel gp) {
 
             // Parse over each file that has the same path as default
             List<Blob> files = new ArrayList<>();
-            for (Blob file : bucket.list(Storage.BlobListOption.prefix(gp.levelPath)).iterateAll()) {
+            for (Blob file : bucket.list(Storage.BlobListOption.prefix("levels/" + userId + "/")).iterateAll()) {
 
                 // Ignore folders and non .dat files
                 if (file.isDirectory()) continue;
@@ -141,13 +141,53 @@ public record Firebase(GamePanel gp) {
                 String name = ds.toString();
 
                 // Format file name
-                String fileName = file.getName().replace(gp.levelPath, "");
+                String fileName = file.getName().replace("levels/" + userId + "/", "");
 
                 // Add to Map (K: file ID, V: level name)
                 fileNames.put(fileName, name);
             }
 
             return fileNames;
+        } catch (Exception e) {
+            System.out.println("Error getting saved levels: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public Map<String, String> getAllUsers() {
+        try {
+            Map<String, String> folders = new LinkedHashMap<>();
+            Bucket bucket = StorageClient.getInstance().bucket();
+
+            Set<String> topLevelFolders = new LinkedHashSet<>();
+
+            // Iterate over all blobs with prefix "levels/"
+            for (Blob blob : bucket.list(Storage.BlobListOption.prefix("levels/")).iterateAll()) {
+                String name = blob.getName();
+
+                // Remove "levels/" prefix
+                String remaining = name.substring("levels/".length());
+                if (remaining.isEmpty()) continue;
+
+                // Get the first part = top-level folder (userId)
+                String[] parts = remaining.split("/", 2);
+                String userId = parts[0];
+
+                // Collect unique top-level folders
+                topLevelFolders.add(userId);
+            }
+
+            // Convert userId to email
+            for (String userId : topLevelFolders) {
+
+                // Skip logged-in user
+                if (userId.equals(gp.auth.getUserId())) continue;
+
+                String email = gp.auth.getEmailFromUid(userId);
+                folders.put(userId, email);
+            }
+
+            return folders;
         } catch (Exception e) {
             System.out.println("Error getting saved levels: " + e.getMessage());
             return null;

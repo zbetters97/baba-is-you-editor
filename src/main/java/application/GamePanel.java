@@ -517,7 +517,7 @@ public class GamePanel extends JPanel implements Runnable {
 
             // Retrieve save files from Firebase (K: file name, V: created date)
             if (dbConnected) {
-                saveFiles = db.getSaveFileNames();
+                saveFiles = db.getUserLevels(auth.getUserId());
             }
         }
         catch (Exception e) {
