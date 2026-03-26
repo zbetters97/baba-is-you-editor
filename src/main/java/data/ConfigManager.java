@@ -18,6 +18,9 @@ public class ConfigManager {
             // IMPORT FILE
             BufferedWriter bw = new BufferedWriter(new FileWriter(gp.saveDir + File.separator + "config.txt"));
 
+            bw.write("USERNAME\n" + gp.username);
+            bw.newLine();
+
             // FULLSCREEN
             bw.write("FULLSCREEN\n" + gp.fullScreenOn);
             bw.newLine();
@@ -46,8 +49,13 @@ public class ConfigManager {
 
             br.readLine();
 
-            // FULL SCREEN
+            // USERNAME
             String s = br.readLine();
+            gp.username = s;
+            br.readLine();
+
+            // FULL SCREEN
+            s = br.readLine();
             gp.fullScreenOn = Boolean.parseBoolean(s);
             br.readLine();
 
@@ -64,6 +72,11 @@ public class ConfigManager {
             br.close();
         }
         catch (Exception e) {
+            System.out.println(e.getMessage());
+
+            gp.username = "steelpro";
+            gp.levelPath = "levels/" + gp.username + "/";
+
 
             // FULL SCREEN
             gp.fullScreenOn = false;

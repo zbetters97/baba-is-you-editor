@@ -73,8 +73,8 @@ public class GamePanel extends JPanel implements Runnable {
     public SaveLoad saveLoad = new SaveLoad(this);
     public DataStorage levelProgress = new DataStorage();
     public Map<String, String> saveFiles = new LinkedHashMap<>();
-    public String account = "steelpro43";
-    public String levelPath = "levels/" + account + "/";
+    public String username = "";
+    public String levelPath = "";
     public boolean isUploading = false;
 
     /* ENTITIES */

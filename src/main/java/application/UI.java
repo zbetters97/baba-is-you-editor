@@ -170,6 +170,10 @@ public class UI {
         else if (subState == 6) {
             drawEditing_SaveName();
         }
+        // SET USERNAME
+        else if (subState == 7) {
+            drawEditing_Username();
+        }
     }
 
     private void drawEditing_Pause() {
@@ -418,116 +422,6 @@ public class UI {
         drawKeyboard("Please name your level", 21);
         handleKeyboardInput();
     }
-    private void handleKeyboardInput() {
-
-        int MAX_LVL_NAME = 20;
-        String keyboardLetters = (capital) ? "QWERTYUIOPASDFGHJKLZXCVBNM_" : "qwertyuiopasdfghjklzxcvbnm_";
-
-        for (int i = 0; i < keyboardLetters.length(); i++) {
-            keyboard.put(i, String.valueOf(keyboardLetters.charAt(i)));
-        }
-
-        if (gp.keyH.upPressed) {
-            gp.keyH.upPressed = false;
-
-            if (commandNum >= 10 && commandNum <= 18) {
-                commandNum -= 10;
-            }
-            else if (commandNum >= 19 && commandNum <= 25) {
-                commandNum -= 9;
-            }
-            else if (commandNum == 26) {
-                commandNum = 17;
-            }
-            else if (commandNum == 27) {
-                commandNum = 18;
-            }
-            else if (commandNum >= 28) {
-                commandNum = 19;
-            }
-        }
-        else if (gp.keyH.downPressed) {
-            gp.keyH.downPressed = false;
-
-            if (commandNum >= 0 && commandNum <= 8) {
-                commandNum += 10;
-            }
-            else if (commandNum >= 9 && commandNum <= 17) {
-                commandNum += 9;
-            }
-            else if (commandNum == 18) {
-                commandNum += 9;
-            }
-            else if (commandNum >= 19 && commandNum <= keyboardLetters.length()) {
-                commandNum = keyboardLetters.length() + 2;
-            }
-            else if (commandNum < keyboardLetters.length() + 2) {
-                commandNum = keyboardLetters.length() + 2;
-            }
-        }
-        else if (gp.keyH.leftPressed) {
-            gp.keyH.leftPressed = false;
-
-            if (commandNum > 0) {
-                commandNum--;
-            }
-        }
-        else if (gp.keyH.rightPressed) {
-            gp.keyH.rightPressed = false;
-
-            if (commandNum < keyboardLetters.length() + 3) {
-                commandNum++;
-            }
-        }
-        else if (gp.keyH.bPressed && !textInput.isEmpty()) {
-            gp.keyH.bPressed = false;
-            textInput = textInput.substring(0, textInput.length() - 1);
-        }
-        else if (gp.keyH.aPressed) {
-            gp.keyH.aPressed = false;
-
-            // LETTER SELECT
-            if (commandNum < keyboardLetters.length()) {
-                if (textInput.length() > MAX_LVL_NAME) return;
-
-                // SPACE BUTTON
-                if (commandNum == keyboardLetters.length() - 1) {
-                    textInput += " ";
-                }
-                // LETTER
-                else {
-                    // Get char in map via corresponding key (EX: 0 -> Q, 10 -> A)
-                    textInput += keyboard.get(commandNum);
-                }
-            }
-            // DEL BUTTON
-            else if (commandNum == keyboardLetters.length()) {
-                if (textInput.isEmpty()) return;
-                textInput = textInput.substring(0, textInput.length() - 1);
-            }
-            // CAPS BUTTON
-            else if (commandNum == keyboardLetters.length() + 1) {
-                capital = !capital;
-            }
-            // BACK BUTTON
-            else if (commandNum == keyboardLetters.length() + 2) {
-                textInput = "";
-                capital = true;
-                commandNum = 0;
-                subState = 2;
-            }
-            // SUBMIT BUTTON
-            else if (commandNum == keyboardLetters.length() + 3) {
-                if (textInput.length() < 3 || textInput.length() > MAX_LVL_NAME) return;
-
-                gp.saveLoad.save(textInput, "");
-                textInput = "";
-                capital = true;
-                commandNum = 0;
-                subState = 1;
-            }
-        }
-    }
 
     private void drawEditing_Settings() {
 
@@ -537,7 +431,7 @@ public class UI {
         int x = gp.tileSize * 2;
         int y = gp.tileSize * 2;
         int width = gp.tileSize * 9;
-        int height = (int) (gp.tileSize * 3.5);
+        int height = (int) (gp.tileSize * 4.5);
         drawSubWindow(x, y, width, height);
 
         x = gp.tileSize * 3;
@@ -602,6 +496,19 @@ public class UI {
             }
         }
 
+        // PLAYER NAME
+        y += gp.tileSize;
+        g2.drawString("Set Username", x, y);
+        if (commandNum == 3) {
+            g2.drawString(">", x - 25, y);
+
+            if (gp.keyH.aPressed) {
+                gp.keyH.aPressed = false;
+                commandNum = 0;
+                subState = 7;
+            }
+        }
+
         // FULL SCREEN CHECK BOX
         x = gp.tileSize * 8;
         y = (int) (gp.tileSize * 2.5);
@@ -645,10 +552,18 @@ public class UI {
             gp.keyH.downPressed = false;
 
             commandNum++;
-            if (commandNum > 2) {
-                commandNum = 2;
+            if (commandNum > 3) {
+                commandNum = 3;
             }
         }
+    }
+
+    private void drawEditing_Username() {
+        g2.setColor(Color.WHITE);
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 32F));
+
+        drawKeyboard("Please enter your username", 10);
+        handleKeyboardInput();
     }
 
     private void drawEditing_Menu() {
@@ -957,6 +872,132 @@ public class UI {
         g2.drawString("SUBMIT", x, y);
         if (commandNum == keyboardLetters.length() + 3) {
             g2.drawString(">", x - gp.tileSize / 2, y);
+        }
+    }
+    private void handleKeyboardInput() {
+
+        int MAX_LVL_NAME = 20;
+        String keyboardLetters = (capital) ? "QWERTYUIOPASDFGHJKLZXCVBNM_" : "qwertyuiopasdfghjklzxcvbnm_";
+
+        for (int i = 0; i < keyboardLetters.length(); i++) {
+            keyboard.put(i, String.valueOf(keyboardLetters.charAt(i)));
+        }
+
+        if (gp.keyH.upPressed) {
+            gp.keyH.upPressed = false;
+
+            if (commandNum >= 10 && commandNum <= 18) {
+                commandNum -= 10;
+            }
+            else if (commandNum >= 19 && commandNum <= 25) {
+                commandNum -= 9;
+            }
+            else if (commandNum == 26) {
+                commandNum = 17;
+            }
+            else if (commandNum == 27) {
+                commandNum = 18;
+            }
+            else if (commandNum >= 28) {
+                commandNum = 19;
+            }
+        }
+        else if (gp.keyH.downPressed) {
+            gp.keyH.downPressed = false;
+
+            if (commandNum >= 0 && commandNum <= 8) {
+                commandNum += 10;
+            }
+            else if (commandNum >= 9 && commandNum <= 17) {
+                commandNum += 9;
+            }
+            else if (commandNum == 18) {
+                commandNum += 9;
+            }
+            else if (commandNum >= 19 && commandNum <= keyboardLetters.length()) {
+                commandNum = keyboardLetters.length() + 2;
+            }
+            else if (commandNum < keyboardLetters.length() + 2) {
+                commandNum = keyboardLetters.length() + 2;
+            }
+        }
+        else if (gp.keyH.leftPressed) {
+            gp.keyH.leftPressed = false;
+
+            if (commandNum > 0) {
+                commandNum--;
+            }
+        }
+        else if (gp.keyH.rightPressed) {
+            gp.keyH.rightPressed = false;
+
+            if (commandNum < keyboardLetters.length() + 3) {
+                commandNum++;
+            }
+        }
+        else if (gp.keyH.bPressed && !textInput.isEmpty()) {
+            gp.keyH.bPressed = false;
+            textInput = textInput.substring(0, textInput.length() - 1);
+        }
+        else if (gp.keyH.aPressed) {
+            gp.keyH.aPressed = false;
+
+            // LETTER SELECT
+            if (commandNum < keyboardLetters.length()) {
+                if (textInput.length() > MAX_LVL_NAME) return;
+
+                // SPACE BUTTON
+                if (commandNum == keyboardLetters.length() - 1) {
+                    textInput += " ";
+                }
+                // LETTER
+                else {
+                    // Get char in map via corresponding key (EX: 0 -> Q, 10 -> A)
+                    textInput += keyboard.get(commandNum);
+                }
+            }
+            // DEL BUTTON
+            else if (commandNum == keyboardLetters.length()) {
+                if (textInput.isEmpty()) return;
+                textInput = textInput.substring(0, textInput.length() - 1);
+            }
+            // CAPS BUTTON
+            else if (commandNum == keyboardLetters.length() + 1) {
+                capital = !capital;
+            }
+            // BACK BUTTON
+            else if (commandNum == keyboardLetters.length() + 2) {
+                textInput = "";
+                capital = true;
+
+                if (subState == 6) {
+                    commandNum = 0;
+                    subState = 2;
+                }
+                else {
+                    commandNum = 3;
+                    subState = 5;
+                }
+
+            }
+            // SUBMIT BUTTON
+            else if (commandNum == keyboardLetters.length() + 3) {
+                if (textInput.length() < 3 || textInput.length() > MAX_LVL_NAME) return;
+
+                if (subState == 6) {
+                    gp.saveLoad.save(textInput, "");
+                    commandNum = 0;
+                    subState = 1;
+                }
+                else if (subState == 7) {
+                    gp.username = textInput;
+                    commandNum = 3;
+                    subState = 5;
+                }
+
+                textInput = "";
+                capital = true;
+            }
         }
     }
 
