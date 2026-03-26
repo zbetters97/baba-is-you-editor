@@ -36,6 +36,8 @@ public record SaveLoad(GamePanel gp) {
             sdf.setTimeZone(TimeZone.getTimeZone("America/New_York"));
             ds.file_date = sdf.format(new Date(System.currentTimeMillis()));
 
+            ds.song = gp.song;
+
             // Initialize entity data lists
             int size = gp.entities.size();
 
@@ -154,6 +156,8 @@ public record SaveLoad(GamePanel gp) {
             // Parse over each entity
             ArrayList<Entity> entities = gp.entities;
             entities.clear();
+
+            gp.song = ds.song;
 
             for (int i = 0; i < ds.names.length; i++) {
 

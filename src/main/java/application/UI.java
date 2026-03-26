@@ -166,13 +166,13 @@ public class UI {
         else if (subState == 5) {
             drawEditing_Settings();
         }
-        // CREATE NAME
-        else if (subState == 6) {
-            drawEditing_SaveName();
-        }
         // SET USERNAME
-        else if (subState == 7) {
+        else if (subState == 6) {
             drawEditing_Username();
+        }
+        // LEVEL NAME
+        else if (subState == 7) {
+            drawEditing_SaveName();
         }
     }
 
@@ -344,7 +344,7 @@ public class UI {
                 if (gp.keyH.aPressed) {
                     gp.keyH.aPressed = false;
                     commandNum = 0;
-                    subState = 6;
+                    subState = 7;
                 }
             }
 
@@ -413,7 +413,6 @@ public class UI {
             }
         }
     }
-
     private void drawEditing_SaveName() {
 
         g2.setColor(Color.WHITE);
@@ -431,7 +430,7 @@ public class UI {
         int x = gp.tileSize * 2;
         int y = gp.tileSize * 2;
         int width = gp.tileSize * 9;
-        int height = (int) (gp.tileSize * 4.5);
+        int height = (int) (gp.tileSize * 5.5);
         drawSubWindow(x, y, width, height);
 
         x = gp.tileSize * 3;
@@ -496,16 +495,43 @@ public class UI {
             }
         }
 
-        // PLAYER NAME
+        // LEVEL SONG
         y += gp.tileSize;
-        g2.drawString("Set Username", x, y);
+        g2.drawString("Choose Song", x, y);
         if (commandNum == 3) {
+            g2.drawString(">", x - 25, y);
+
+            if (gp.keyH.leftPressed) {
+                gp.keyH.leftPressed = false;
+
+                if (gp.song > 0) {
+                    gp.song--;
+                    gp.stopMusic();
+                    gp.playMusic(0, gp.song);
+                }
+            }
+            if (gp.keyH.rightPressed) {
+                gp.keyH.rightPressed = false;
+
+                if (gp.song < gp.se.maxSongs) {
+                    gp.song++;
+                    gp.stopMusic();
+                    gp.playMusic(0, gp.song);
+                }
+            }
+        }
+
+        // USERNAME
+        y += gp.tileSize;
+        g2.drawString("Change Username", x, y);
+        if (commandNum == 4) {
             g2.drawString(">", x - 25, y);
 
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
+                textInput = gp.username;
                 commandNum = 0;
-                subState = 7;
+                subState = 6;
             }
         }
 
@@ -530,6 +556,10 @@ public class UI {
         g2.drawRect(x, y, 120, 24); // 120/5 = 24
         volumeWidth = 24 * gp.se.volumeScale;
         g2.fillRect(x, y, volumeWidth, 24);
+
+        // FULL SCREEN CHECK BOX
+        y += (int) (gp.tileSize * 1.5);
+        g2.drawString(String.valueOf(gp.song), x, y);
 
         if (gp.keyH.bPressed || gp.keyH.startPressed) {
             gp.keyH.bPressed = false;
@@ -557,7 +587,6 @@ public class UI {
             }
         }
     }
-
     private void drawEditing_Username() {
         g2.setColor(Color.WHITE);
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 32F));
@@ -970,13 +999,15 @@ public class UI {
                 textInput = "";
                 capital = true;
 
+                // Saving username
                 if (subState == 6) {
+                    commandNum = 4;
+                    subState = 5;
+                }
+                // Saving level
+                else {
                     commandNum = 0;
                     subState = 2;
-                }
-                else {
-                    commandNum = 3;
-                    subState = 5;
                 }
 
             }
@@ -984,15 +1015,17 @@ public class UI {
             else if (commandNum == keyboardLetters.length() + 3) {
                 if (textInput.length() < 3 || textInput.length() > MAX_LVL_NAME) return;
 
+                // Saving username
                 if (subState == 6) {
+                    gp.username = textInput;
+                    commandNum = 4;
+                    subState = 5;
+                }
+                // Saving level
+                else if (subState == 7) {
                     gp.saveLoad.save(textInput, "");
                     commandNum = 0;
                     subState = 1;
-                }
-                else if (subState == 7) {
-                    gp.username = textInput;
-                    commandNum = 3;
-                    subState = 5;
                 }
 
                 textInput = "";

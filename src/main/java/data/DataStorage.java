@@ -9,14 +9,15 @@ public class DataStorage implements Serializable {
     private static final long serialVersionUID = 1L;
 
     // FILE INFO
-    String level_name;
-    String file_date;
+    public String level_name;
+    public String file_date;
+    public int song;
 
     // ENTITY DATA ARRAYS
-    String[] names;
-    int[] worldX, worldY;
-    int[] belt_ori, wall_ori, water_ori;
-    int[] wall_side, water_side;
+    public String[] names;
+    public int[] worldX, worldY;
+    public int[] belt_ori, wall_ori, water_ori;
+    public int[] wall_side, water_side;
 
     public String toString() {
         return level_name + " [" + file_date + "]";

@@ -86,6 +86,7 @@ public class GamePanel extends JPanel implements Runnable {
     public boolean wordMoved = false;
     private boolean rewinding = false;
 
+    public int song = 0;
     public boolean showGrid = true;
     public boolean win = false;
 
@@ -512,7 +513,7 @@ public class GamePanel extends JPanel implements Runnable {
         lHandler.clearRules();
         lHandler.initRules();
         ui.editing_GetEntity();
-        playMusic(0, 1);
+        playMusic(0, song);
     }
 
     public void playSE(int category, int record) {

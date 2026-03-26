@@ -17,6 +17,7 @@ public class SoundCard {
     public Clip clip;
     private final String[][] sounds = new String[5][];
     private final int[][] loopStarts = new int[2][];
+    public int maxSongs = 0;
 
     /* VOLUME SLIDER */
     private FloatControl gainControl;
@@ -26,13 +27,14 @@ public class SoundCard {
 
     public SoundCard() {
         sounds[0] = getSounds("00_music");
+        maxSongs = sounds[0].length - 1;
         sounds[1] = getSounds("01_level");
         sounds[2] = getSounds("02_entities");
         sounds[3] = getSounds("03_rules");
         sounds[4] = getSounds("04_actions");
 
         // Loop start times for each music file in milliseconds
-        loopStarts[0] = new int[]{7133, 1119};
+        loopStarts[0] = new int[]{7133, 1119, 3869, 7592};
     }
 
     private String[] getSounds(String library) {

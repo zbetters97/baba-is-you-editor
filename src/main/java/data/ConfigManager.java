@@ -52,6 +52,7 @@ public class ConfigManager {
             // USERNAME
             String s = br.readLine();
             gp.username = s;
+            gp.levelPath = "levels/" + gp.username + "/";
             br.readLine();
 
             // FULL SCREEN
@@ -74,9 +75,9 @@ public class ConfigManager {
         catch (Exception e) {
             System.out.println(e.getMessage());
 
+            // USERNAME
             gp.username = "steelpro";
             gp.levelPath = "levels/" + gp.username + "/";
-
 
             // FULL SCREEN
             gp.fullScreenOn = false;
