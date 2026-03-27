@@ -364,7 +364,7 @@ public class GamePanel extends JPanel implements Runnable {
         // Check if entities are currently moving
         boolean movingNow = entitiesMoving();
 
-        // No entities moving
+        // An entity moved a tile
         if (entitiesWereMoving && !movingNow) {
 
             // Scan static rules if a word moved
@@ -372,6 +372,7 @@ public class GamePanel extends JPanel implements Runnable {
                 lHandler.scanForRules();
             }
 
+            // Re-apply all rules
             lHandler.resetEntityRuleStates();
             lHandler.applyStaticRules();
             lHandler.applyConditionalRules();
@@ -399,7 +400,6 @@ public class GamePanel extends JPanel implements Runnable {
             gameState = editState;
             ui.subState = 2;
 
-            stopMusic();
             playMusic(0, 0);
         }
     }
@@ -413,7 +413,6 @@ public class GamePanel extends JPanel implements Runnable {
             saveLoad.loadFromData();
             gameState = editState;
 
-            stopMusic();
             playMusic(0, 0);
         }
     }
@@ -492,12 +491,10 @@ public class GamePanel extends JPanel implements Runnable {
      * Called by KeyHandler
      */
     public void setupLevel() {
-        stopMusic();
         win = false;
         stateHandler.clearData();
         lHandler.clearRules();
         lHandler.initRules();
-        ui.editing_GetEntity();
         playMusic(0, song);
     }
 
@@ -513,12 +510,13 @@ public class GamePanel extends JPanel implements Runnable {
             String idToken = auth.authorize();
             auth.login(idToken);
 
-            levelPath = "levels/" + auth.getUserId() + "/";
-
-            // Retrieve save files from Firebase (K: file name, V: created date)
-            if (dbConnected) {
-                saveFiles = db.getUserLevels(auth.getUserId());
+            // Failed to log in
+            if (!auth.isLoggedIn()) {
+                throw new Exception("User not logged in");
             }
+
+            // Assign current user ID to level path
+            levelPath = "levels/" + auth.getUserId() + "/";
         }
         catch (Exception e) {
             System.out.println("Error logging in: " + e.getMessage());
@@ -530,6 +528,7 @@ public class GamePanel extends JPanel implements Runnable {
         se.play();
     }
     public void playMusic(int category, int record) {
+        stopMusic();
         int loopStart = music.getLoopStart(category, record);
         music.setFile(category, record);
         music.loop(loopStart);

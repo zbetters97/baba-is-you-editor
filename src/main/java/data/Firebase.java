@@ -70,7 +70,7 @@ public record Firebase(GamePanel gp) {
             Bucket bucket = StorageClient.getInstance().bucket();
 
             // Attempt to open the file
-            Blob file = bucket.get(gp.levelPath + fileName);
+            Blob file = bucket.get(fileName);
             if (file == null) {
                 throw new IllegalStateException("File not found in Firebase Storage");
             }
@@ -97,7 +97,8 @@ public record Firebase(GamePanel gp) {
 
             // Attempt to delete the file from Storage
             return file.delete();
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             System.out.println("Error deleting level: " + e.getMessage());
             return false;
         }
@@ -137,14 +138,11 @@ public record Firebase(GamePanel gp) {
                 ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(data));
                 DataStorage ds = (DataStorage) ois.readObject();
 
-                // Retrieve stored file_date value
+                // Retrieve stored file_name value
                 String name = ds.toString();
 
-                // Format file name
-                String fileName = file.getName().replace("levels/" + userId + "/", "");
-
                 // Add to Map (K: file ID, V: level name)
-                fileNames.put(fileName, name);
+                fileNames.put(file.getName(), name);
             }
 
             return fileNames;
@@ -183,12 +181,13 @@ public record Firebase(GamePanel gp) {
                 // Skip logged-in user
                 if (userId.equals(gp.auth.getUserId())) continue;
 
-                String email = gp.auth.getEmailFromUid(userId);
+                String email = gp.auth.getEmailByUserID(userId);
                 folders.put(userId, email);
             }
 
             return folders;
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             System.out.println("Error getting saved levels: " + e.getMessage());
             return null;
         }

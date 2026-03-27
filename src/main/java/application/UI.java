@@ -37,6 +37,9 @@ public class UI {
 
     private Map<String, String> usersList = new HashMap<>();
 
+    private boolean isSaving;
+    private boolean isLoading;
+
     public String textInput = "";
     private final Map<Integer, String> keyboard = new LinkedHashMap<>();
     private boolean capital = true;
@@ -85,7 +88,6 @@ public class UI {
 
         return iTiles;
     }
-
     private void addWallTiles(List<UIEntity> list) {
         list.add(new UIEntity("i_tiles", "WALL", 0, 0, gp));
 
@@ -127,6 +129,7 @@ public class UI {
     }
 
     private void drawEditState() {
+        // LEVEL CREATION
         if (subState == 0) {
             // User holding down Y
             if (gp.keyH.yPressed) {
@@ -149,36 +152,142 @@ public class UI {
                 subState = 1;
             }
         }
+        // PAUSE MENU
         else if (subState == 1) {
-            drawEditing_Pause();
+            if (gp.dbConnected && gp.auth.isLoggedIn()) {
+                drawEditing_Pause_User();
+            }
+            else {
+                drawEditing_Pause();
+            }
         }
-        // SAVE
+        // SAVE / LOAD / DELETE
         else if (subState == 2){
-            drawEditing_SaveLoadDelete(true, false);
+            drawEditing_SaveLoadDelete();
         }
-        // LOAD
-        else if (subState == 3){
-            drawEditing_SaveLoadDelete(false, true);
+        // LEVEL NAME
+        else if (subState == 3) {
+            drawEditing_SaveName();
         }
-        // DELETE
+        // ONLINE LEVELS
         else if (subState == 4) {
-            drawEditing_SaveLoadDelete(false, false);
+            drawEditing_Users();
         }
         // CHANGE SETTINGS
         else if (subState == 5) {
             drawEditing_Settings();
         }
-        // LEVEL NAME
-        else if (subState == 6) {
-            drawEditing_SaveName();
-        }
-        // ONLINE LEVELS
-        else if (subState == 7) {
-            drawEditing_Users();
-        }
     }
 
     private void drawEditing_Pause() {
+
+        g2.setColor(Color.WHITE);
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 32F));
+
+        int x = gp.tileSize * 2;
+        int y = gp.tileSize * 2;
+        int width = gp.tileSize * 5;
+        int height = (int) (gp.tileSize * 5.5);
+        drawSubWindow(x, y, width, height);
+
+        x = gp.tileSize * 3;
+        y = gp.tileSize * 3;
+
+        // PLAY
+        g2.drawString("Play", x, y);
+        if (commandNum == 0) {
+            g2.drawString(">", x - 25, y);
+            if (gp.keyH.aPressed) {
+                gp.keyH.aPressed = false;
+
+                commandNum = 0;
+                subState = 0;
+                gp.saveLoad.saveToData("temp");
+                gp.gameState = gp.playState;
+                gp.setupLevel();
+            }
+        }
+
+        // NEW
+        y += gp.tileSize;
+        g2.drawString("New", x, y);
+        if (commandNum == 1) {
+            g2.drawString(">", x - 25, y);
+            if (gp.keyH.aPressed) {
+                gp.keyH.aPressed = false;
+
+                commandNum = 0;
+                subState = 0;
+                gp.saveLoad.resetData();
+            }
+        }
+
+        // ONLINE LEVELS
+        y += gp.tileSize;
+        g2.drawString("Browse", x, y);
+        if (commandNum == 2) {
+            g2.drawString(">", x - 25, y);
+            if (gp.keyH.aPressed) {
+                gp.keyH.aPressed = false;
+
+                usersList = gp.db.getAllUsers();
+                if (usersList == null || usersList.isEmpty()) return;
+
+                commandNum = 0;
+                subState = 4;
+            }
+        }
+
+        // LOGIN
+        y += gp.tileSize;
+        g2.drawString("Login", x, y);
+        if (commandNum == 3) {
+            g2.drawString(">", x - 25, y);
+
+            if (gp.keyH.aPressed) {
+                gp.keyH.aPressed = false;
+                gp.changeLogin();
+            }
+        }
+
+        // SETTINGS
+        y += gp.tileSize;
+        g2.drawString("Settings", x, y);
+        if (commandNum == 4) {
+            g2.drawString(">", x - 25, y);
+            if (gp.keyH.aPressed) {
+                gp.keyH.aPressed = false;
+
+                commandNum = 0;
+                subState = 5;
+            }
+        }
+
+        if (gp.keyH.bPressed || gp.keyH.startPressed) {
+            gp.keyH.bPressed = false;
+            gp.keyH.startPressed = false;
+            subState = 0;
+            commandNum = 0;
+        }
+
+        if (gp.keyH.upPressed) {
+            gp.keyH.upPressed = false;
+
+            commandNum--;
+            if (commandNum < 0) {
+                commandNum = 0;
+            }
+        }
+        else if (gp.keyH.downPressed) {
+            gp.keyH.downPressed = false;
+
+            commandNum++;
+            if (commandNum > 4) {
+                commandNum = 4;
+            }
+        }
+    }
+    private void drawEditing_Pause_User() {
 
         g2.setColor(Color.WHITE);
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 32F));
@@ -207,50 +316,53 @@ public class UI {
             }
         }
 
-        // UPLOAD
+        // NEW
         y += gp.tileSize;
-        g2.drawString("Upload", x, y);
+        g2.drawString("New", x, y);
         if (commandNum == 1) {
             g2.drawString(">", x - 25, y);
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
 
-                if (!gp.auth.isLoggedIn()) return;
-
-                gp.isUploading = true;
-                gp.saveLoad.saveToData("temp");
-                gp.gameState = gp.playState;
-                gp.setupLevel();
-            }
-        }
-
-        // SAVE
-        y += gp.tileSize;
-        g2.drawString("Save", x, y);
-        if (commandNum == 2) {
-            g2.drawString(">", x - 25, y);
-            if (gp.keyH.aPressed) {
-                gp.keyH.aPressed = false;
-
-                if (!gp.auth.isLoggedIn()) return;
-
                 commandNum = 0;
-                subState = 2;
+                subState = 0;
+                gp.saveLoad.resetData();
             }
         }
 
         // LOAD
         y += gp.tileSize;
         g2.drawString("Load", x, y);
+        if (commandNum == 2) {
+            g2.drawString(">", x - 25, y);
+            if (gp.keyH.aPressed) {
+                gp.keyH.aPressed = false;
+
+                gp.saveFiles = gp.db.getUserLevels(gp.auth.getUserId());
+                if (gp.saveFiles == null || gp.saveFiles.isEmpty()) return;
+
+                isSaving = false;
+                isLoading = true;
+                commandNum = 0;
+                subState = 2;
+            }
+        }
+
+        // SAVE
+        y += gp.tileSize;
+        g2.drawString("Save", x, y);
         if (commandNum == 3) {
             g2.drawString(">", x - 25, y);
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
 
-                if (gp.saveFiles.isEmpty() || !gp.auth.isLoggedIn()) return;
+                gp.saveFiles = gp.db.getUserLevels(gp.auth.getUserId());
+                if (gp.saveFiles == null || gp.saveFiles.isEmpty()) return;
 
+                isSaving = true;
+                isLoading = false;
                 commandNum = 0;
-                subState = 3;
+                subState = 2;
             }
         }
 
@@ -262,16 +374,19 @@ public class UI {
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
 
-                if (gp.saveFiles.isEmpty() || !gp.auth.isLoggedIn()) return;
+                gp.saveFiles = gp.db.getUserLevels(gp.auth.getUserId());
+                if (gp.saveFiles == null || gp.saveFiles.isEmpty()) return;
 
+                isSaving = false;
+                isLoading = false;
                 commandNum = 0;
-                subState = 4;
+                subState = 2;
             }
         }
 
-        // NEW
+        // UPLOAD
         y += gp.tileSize;
-        g2.drawString("New", x, y);
+        g2.drawString("Upload", x, y);
         if (commandNum == 5) {
             g2.drawString(">", x - 25, y);
             if (gp.keyH.aPressed) {
@@ -279,49 +394,52 @@ public class UI {
 
                 commandNum = 0;
                 subState = 0;
-                gp.saveLoad.resetData();
+
+                gp.saveLoad.saveToData("temp");
+                gp.setupLevel();
+                gp.isUploading = true;
+                gp.gameState = gp.playState;
             }
         }
 
         // ONLINE LEVELS
         y += gp.tileSize;
-        g2.drawString("Online", x, y);
+        g2.drawString("Browse", x, y);
         if (commandNum == 6) {
             g2.drawString(">", x - 25, y);
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
 
                 usersList = gp.db.getAllUsers();
-                if (usersList != null && !usersList.isEmpty()) {
-                    commandNum = 0;
-                    subState = 7;
-                }
+                if (usersList == null || usersList.isEmpty()) return;
+
+                commandNum = 0;
+                subState = 4;
+            }
+        }
+
+        // Logout
+        y += gp.tileSize;
+        g2.drawString("Logout", x, y);
+        if (commandNum == 7) {
+            g2.drawString(">", x - 25, y);
+
+            if (gp.keyH.aPressed) {
+                gp.keyH.aPressed = false;
+                gp.changeLogin();
             }
         }
 
         // SETTINGS
         y += gp.tileSize;
         g2.drawString("Settings", x, y);
-        if (commandNum == 7) {
+        if (commandNum == 8) {
             g2.drawString(">", x - 25, y);
             if (gp.keyH.aPressed) {
                 gp.keyH.aPressed = false;
 
                 commandNum = 0;
                 subState = 5;
-            }
-        }
-
-        // Login / Logout
-        y += gp.tileSize;
-        String authTitle = gp.auth.isLoggedIn() ? "Logout" : "Login";
-        g2.drawString(authTitle, x, y);
-        if (commandNum == 8) {
-            g2.drawString(">", x - 25, y);
-
-            if (gp.keyH.aPressed) {
-                gp.keyH.aPressed = false;
-                gp.changeLogin();
             }
         }
 
@@ -349,7 +467,8 @@ public class UI {
             }
         }
     }
-    private void drawEditing_SaveLoadDelete(boolean isSaving, boolean isLoading) {
+
+    private void drawEditing_SaveLoadDelete() {
 
         if (gp.saveFiles.isEmpty() && !isSaving) return;
 
@@ -379,7 +498,7 @@ public class UI {
                 if (gp.keyH.aPressed) {
                     gp.keyH.aPressed = false;
                     commandNum = 0;
-                    subState = 6;
+                    subState = 3;
                 }
             }
 
@@ -415,6 +534,9 @@ public class UI {
                     else {
                         gp.saveLoad.delete(entry.getKey());
                     }
+
+                    gp.saveFiles.clear();
+                    break;
                 }
             }
 
@@ -427,6 +549,7 @@ public class UI {
             gp.keyH.startPressed = false;
             commandNum = 0;
             subState = 1;
+            gp.saveFiles.clear();
         }
 
         if (gp.keyH.upPressed) {
@@ -453,7 +576,7 @@ public class UI {
         g2.setColor(Color.WHITE);
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 32F));
 
-        drawKeyboard("Please name your level", 21);
+        drawKeyboard();
         handleKeyboardInput();
     }
 
@@ -487,10 +610,12 @@ public class UI {
                 if (gp.keyH.aPressed) {
                     gp.keyH.aPressed = false;
 
-                    commandNum = 0;
-                    subState = 3;
-
                     gp.saveFiles = gp.db.getUserLevels(entry.getKey());
+
+                    isSaving = false;
+                    isLoading = true;
+                    commandNum = 0;
+                    subState = 2;
                 }
             }
 
@@ -501,7 +626,7 @@ public class UI {
         if (gp.keyH.bPressed || gp.keyH.startPressed) {
             gp.keyH.bPressed = false;
             gp.keyH.startPressed = false;
-            commandNum = 6;
+            commandNum = 0;
             subState = 1;
         }
 
@@ -607,7 +732,6 @@ public class UI {
 
                 if (gp.song > 0) {
                     gp.song--;
-                    gp.stopMusic();
                     gp.playMusic(0, gp.song);
                 }
             }
@@ -616,7 +740,6 @@ public class UI {
 
                 if (gp.song < gp.se.maxSongs) {
                     gp.song++;
-                    gp.stopMusic();
                     gp.playMusic(0, gp.song);
                 }
             }
@@ -653,7 +776,7 @@ public class UI {
             gp.keyH.startPressed = false;
 
             gp.config.saveConfig();
-            commandNum = 7;
+            commandNum = 0;
             subState = 1;
         }
 
@@ -925,7 +1048,7 @@ public class UI {
         gp.entities.add(entity);
     }
 
-    private void drawKeyboard(String title, int limit) {
+    private void drawKeyboard() {
 
         String keyboardLetters = (capital) ? "QWERTYUIOPASDFGHJKLZXCVBNM_" : "qwertyuiopasdfghjklzxcvbnm_";
 
@@ -936,11 +1059,11 @@ public class UI {
         int height = gp.screenHeight / 2;
         drawSubWindow(x, y, width, height);
 
-        x = getXForCenteredTextOnWidth(title, width, x);
+        x = getXForCenteredTextOnWidth("Please name your level", width, x);
         y += (int) (gp.tileSize * 1.25);
-        g2.drawString(title, x, y);
+        g2.drawString("Please name your level", x, y);
 
-        String text = textInput.length() <= limit ?
+        String text = textInput.length() <= 21 ?
                 "-> " + textInput + "_" :
                 "-> " + textInput;
         defaultX += gp.tileSize;

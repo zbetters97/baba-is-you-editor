@@ -9,6 +9,7 @@ import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.UserRecord;
 
 import javax.swing.*;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
@@ -22,45 +23,40 @@ public class Auth {
 
     public String authorize() {
         try {
+            // Retrieve Google Auth configuration file
             InputStream in = getClass()
                     .getClassLoader()
                     .getResourceAsStream("db/oauth.json");
 
-            assert in != null;
-            GoogleClientSecrets clientSecrets =
-                    GoogleClientSecrets.load(
-                            GsonFactory.getDefaultInstance(),
-                            new InputStreamReader(in)
-                    );
+            // File doesn't exist
+            if (in == null) {
+                throw new FileNotFoundException();
+            }
 
-            GoogleAuthorizationCodeFlow flow =
-                    new GoogleAuthorizationCodeFlow.Builder(
-                            new NetHttpTransport(),
-                            GsonFactory.getDefaultInstance(),
-                            clientSecrets,
-                            List.of("openid", "email", "profile")
-                    )
-                            .setAccessType("offline")
-                            .build();
+            // Set connection settings
+            GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(
+                    GsonFactory.getDefaultInstance(),
+                    new InputStreamReader(in)
+            );
 
-            LocalServerReceiver receiver = new LocalServerReceiver.Builder()
-                    .setPort(-1)
-                    .build();
+            GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
+                    new NetHttpTransport(),
+                    GsonFactory.getDefaultInstance(),
+                    clientSecrets,
+                    List.of("openid", "email", "profile")
+            ).setAccessType("offline").build();
 
+            // Create redirect port
+            LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(-1).build();
             String redirectUri = receiver.getRedirectUri();
 
-            String authorizationUrl = flow.newAuthorizationUrl()
-                    .setRedirectUri(redirectUri)
-                    .build();
-
+            // Create URL
+            String authorizationUrl = flow.newAuthorizationUrl().setRedirectUri(redirectUri).build();
             java.awt.Desktop.getDesktop().browse(new java.net.URI(authorizationUrl));
 
+            // Open URL on port and get authorization code
             String code = receiver.waitForCode();
-
-            GoogleTokenResponse tokenResponse =
-                    flow.newTokenRequest(code)
-                            .setRedirectUri(redirectUri)
-                            .execute();
+            GoogleTokenResponse tokenResponse = flow.newTokenRequest(code).setRedirectUri(redirectUri).execute();
 
             return tokenResponse.getIdToken();
         }
@@ -72,14 +68,17 @@ public class Auth {
 
     public void login(String idToken) throws Exception {
 
+        // Get token object based on given token
         GoogleIdToken idTokenObj = GoogleIdToken.parse(
                 GsonFactory.getDefaultInstance(),
                 idToken
         );
 
+        // Retrieve email by token ID
         GoogleIdToken.Payload payload = idTokenObj.getPayload();
         String email = payload.getEmail();
 
+        // Fetch user object by email, create if it doesn't exist
         try {
             user = FirebaseAuth.getInstance().getUserByEmail(email);
         }
@@ -98,9 +97,14 @@ public class Auth {
         return null;
     }
 
-    public String getEmailFromUid(String uid) {
+    public String getEmailByUserID(String uid) {
         try {
             UserRecord user = FirebaseAuth.getInstance().getUser(uid);
+
+            if (user == null) {
+                throw new Exception("User not found");
+            }
+
             return user.getEmail();
         }
         catch (Exception e) {
