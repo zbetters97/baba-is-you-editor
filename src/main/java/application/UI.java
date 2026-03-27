@@ -36,6 +36,7 @@ public class UI {
     private boolean wasYPressed = false;
 
     private Map<String, String> usersList = new HashMap<>();
+    private boolean viewingUserLevels = false;
 
     private boolean isSaving;
     private boolean isLoading;
@@ -184,14 +185,14 @@ public class UI {
         g2.setColor(Color.WHITE);
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 32F));
 
-        int x = gp.tileSize * 2;
-        int y = gp.tileSize * 2;
-        int width = gp.tileSize * 5;
-        int height = (int) (gp.tileSize * 5.5);
+        int x = gp.tileSize;
+        int y = gp.tileSize;
+        int width = gp.tileSize * 4;
+        int height = (int) (gp.tileSize * 6.5);
         drawSubWindow(x, y, width, height);
 
-        x = gp.tileSize * 3;
-        y = gp.tileSize * 3;
+        x = gp.tileSize * 2;
+        y = gp.tileSize * 2;
 
         // PLAY
         g2.drawString("Play", x, y);
@@ -223,7 +224,7 @@ public class UI {
         }
 
         // ONLINE LEVELS
-        y += gp.tileSize;
+        y += (int) (gp.tileSize * 1.5);
         g2.drawString("Browse", x, y);
         if (commandNum == 2) {
             g2.drawString(">", x - 25, y);
@@ -239,7 +240,7 @@ public class UI {
         }
 
         // LOGIN
-        y += gp.tileSize;
+        y += (int) (gp.tileSize * 1.5);
         g2.drawString("Login", x, y);
         if (commandNum == 3) {
             g2.drawString(">", x - 25, y);
@@ -292,14 +293,14 @@ public class UI {
         g2.setColor(Color.WHITE);
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 32F));
 
-        int x = gp.tileSize * 2;
-        int y = gp.tileSize * 2;
-        int width = gp.tileSize * 5;
-        int height = (int) (gp.tileSize * 9.5);
+        int x = gp.tileSize;
+        int y = gp.tileSize;
+        int width = gp.tileSize * 4;
+        int height = (int) (gp.tileSize * 10.5);
         drawSubWindow(x, y, width, height);
 
-        x = gp.tileSize * 3;
-        y = gp.tileSize * 3;
+        x = gp.tileSize * 2;
+        y = gp.tileSize * 2;
 
         // PLAY
         g2.drawString("Play", x, y);
@@ -403,7 +404,7 @@ public class UI {
         }
 
         // ONLINE LEVELS
-        y += gp.tileSize;
+        y += (int) (gp.tileSize * 1.5);
         g2.drawString("Browse", x, y);
         if (commandNum == 6) {
             g2.drawString(">", x - 25, y);
@@ -419,7 +420,7 @@ public class UI {
         }
 
         // Logout
-        y += gp.tileSize;
+        y += (int) (gp.tileSize * 1.5);
         g2.drawString("Logout", x, y);
         if (commandNum == 7) {
             g2.drawString(">", x - 25, y);
@@ -517,6 +518,7 @@ public class UI {
                 if (gp.keyH.aPressed) {
                     gp.keyH.aPressed = false;
 
+                    viewingUserLevels = false;
                     commandNum = 0;
                     subState = 0;
 
@@ -549,6 +551,12 @@ public class UI {
             gp.keyH.startPressed = false;
             commandNum = 0;
             subState = 1;
+
+            if (viewingUserLevels) {
+                viewingUserLevels = false;
+                subState = 4;
+            }
+
             gp.saveFiles.clear();
         }
 
@@ -612,6 +620,7 @@ public class UI {
 
                     gp.saveFiles = gp.db.getUserLevels(entry.getKey());
 
+                    viewingUserLevels = true;
                     isSaving = false;
                     isLoading = true;
                     commandNum = 0;
@@ -723,7 +732,7 @@ public class UI {
 
         // LEVEL SONG
         y += gp.tileSize;
-        g2.drawString("Choose Song", x, y);
+        g2.drawString("Music", x, y);
         if (commandNum == 3) {
             g2.drawString(">", x - 25, y);
 
@@ -735,7 +744,7 @@ public class UI {
                     gp.playMusic(0, gp.song);
                 }
             }
-            if (gp.keyH.rightPressed) {
+            else if (gp.keyH.rightPressed) {
                 gp.keyH.rightPressed = false;
 
                 if (gp.song < gp.se.maxSongs) {
@@ -767,9 +776,9 @@ public class UI {
         volumeWidth = 24 * gp.se.volumeScale;
         g2.fillRect(x, y, volumeWidth, 24);
 
-        // FULL SCREEN CHECK BOX
+        // SONG NUMBER
         y += (int) (gp.tileSize * 1.5);
-        g2.drawString(String.valueOf(gp.song), x, y);
+        g2.drawString(String.valueOf(gp.song + 1), x, y);
 
         if (gp.keyH.bPressed || gp.keyH.startPressed) {
             gp.keyH.bPressed = false;
